@@ -25,7 +25,7 @@ import {
 import { generateImage } from '@/services/pollinations';
 
 const IMAGE_SIZES = [
-  { width: 1024, height: 768, label: 'Landscape', icon: RectangleHorizontal },
+  { width: 1280, height: 720, label: 'Landscape', icon: RectangleHorizontal },
   { width: 512, height: 512, label: 'Square', icon: Square },
   { width: 768, height: 1024, label: 'Portrait', icon: RectangleVertical },
   { width: 1704, height: 960, label: 'Desktop', icon: Monitor },
@@ -83,40 +83,6 @@ const imageEventEmitter = {
 };
 
 export { imageEventEmitter };
-
-const NumberInput = ({ 
-  value, 
-  onChange, 
-  onBlur, 
-  placeholder,
-  hasError 
-}: { 
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-  placeholder: string;
-  hasError?: boolean;
-}) => (
-  <div className="relative">
-    <input
-      type="text"
-      inputMode="decimal"
-      value={value}
-      onChange={(e) => {
-        const val = e.target.value;
-        if (/^\d*$/.test(val)) {
-          onChange(val);
-        }
-      }}
-      onBlur={onBlur}
-      className={`w-full px-3 py-1.5 bg-gray-900/50 border rounded text-sm text-white pr-12 focus:outline-none focus:ring-1 focus:ring-purple-500/30 ${
-        hasError ? 'border-red-500/50' : 'border-white/5'
-      }`}
-      placeholder={placeholder}
-    />
-    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">px</span>
-  </div>
-);
 
 const ImageSizeInput = ({ 
   onSizeChange,
@@ -253,7 +219,7 @@ const enhancePrompt = async (prompt: string) => {
   }
 };
 
-export default function ImageGenerator() {
+const ImageGenerator = () => {
   const { addImages, setImages } = useGeneratedImages();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -262,18 +228,11 @@ export default function ImageGenerator() {
     label?: string;
     style?: string;
   }>>([]);
-  const [selectedSize, setSelectedSize] = useState<SizeOption>({
-    width: 1024,
-    height: 1024,
-    label: 'Square'
-  });
+  const [selectedSize, setSelectedSize] = useState(IMAGE_SIZES[0]);
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isCustomSize, setIsCustomSize] = useState(false);
   const [customSize, setCustomSize] = useState({ width: 512, height: 512 });
-  const [sizeWarning, setSizeWarning] = useState<string | null>(null);
-  const [tempWidth, setTempWidth] = useState('');
-  const [tempHeight, setTempHeight] = useState('');
   const [promptMode, setPromptMode] = useState<PromptMode>('enhanced');
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -380,6 +339,11 @@ export default function ImageGenerator() {
           style: 'digital'
         },
         {
+          prompt: `${inputPrompt}, cinematic lighting, movie scene, dramatic atmosphere, depth of field, 35mm film`,
+          label: 'Cinematic',
+          style: 'cinematic'
+        },
+        {
           prompt: `${inputPrompt}, anime style, highly detailed, studio ghibli`,
           label: 'Anime',
           style: 'anime'
@@ -473,26 +437,6 @@ export default function ImageGenerator() {
       .trim();
   };
 
-  const validateAndUpdateSize = () => {
-    const width = parseInt(tempWidth);
-    const height = parseInt(tempHeight);
-
-    if (!width || !height) return;
-
-    if (width < 64 || height < 64) {
-      setSizeWarning('Size cannot be less than 64px');
-      return;
-    }
-    if (width > 2048 || height > 2048) {
-      setSizeWarning('Size cannot exceed 2048px');
-      return;
-    }
-
-    setSizeWarning(null);
-    setCustomSize({ width, height });
-    setSelectedSize({ width, height, label: selectedSize.label });
-  };
-
   const SizeControl = () => {
     const handleSizeChange = (width: number, height: number) => {
       setCustomSize({ width, height });
@@ -564,6 +508,21 @@ export default function ImageGenerator() {
       </div>
     );
   };
+
+  // Format images for CustomGallery with proper prompt handling
+  const galleryImages = localImages.map((img, index) => ({
+    id: String(index),
+    url: img.url || '',
+    prompt: prompt || '',
+    width: selectedSize.width,
+    height: selectedSize.height,
+    style: img.label || 'Generated',
+    isFavorite: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    description: `${prompt || ''} • ${img.label || 'Generated'} • ${selectedSize.width}×${selectedSize.height}`,
+    label: img.label || 'Generated'
+  }));
 
   return (
     <div id="generate" className="relative py-8">
@@ -710,7 +669,25 @@ export default function ImageGenerator() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {localImages.length > 0 ? (
+            {loading ? (
+              // Loading placeholders
+              Array.from({ length: 4 }).map((_, index) => (
+                <motion.div
+                  key={`loading-${index}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 border-white/5"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/20 animate-pulse">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+                  </div>
+                  <div className="absolute top-3 left-3">
+                    <div className="h-6 w-24 rounded-full bg-white/5 animate-pulse" />
+                  </div>
+                </motion.div>
+              ))
+            ) : (
               localImages.map((image, index) => (
                 <motion.div
                   key={index}
@@ -766,46 +743,6 @@ export default function ImageGenerator() {
                   </div>
                 </motion.div>
               ))
-            ) : (
-              <motion.div 
-                className="col-span-full h-96 flex items-center justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <div className="text-center">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1],
-                      opacity: [0.5, 1, 0.5]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="relative"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl rounded-full" />
-                    <ImageIcon className="w-20 h-20 mx-auto mb-4 text-gray-400 relative" />
-                  </motion.div>
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-lg text-gray-400"
-                  >
-                    Your variations will appear here
-                  </motion.p>
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-sm text-gray-500 mt-2"
-                  >
-                    We'll generate 4 unique interpretations with different styles
-                  </motion.p>
-                </div>
-              </motion.div>
             )}
           </div>
         </div>
@@ -817,7 +754,7 @@ export default function ImageGenerator() {
             animate={{ opacity: 1, y: 0 }}
             className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
           >
-            <button
+            {/* <button
               onClick={() => {
                 // Handle selection - you can save to history, regenerate with this style, etc.
                 const selected = localImages[selectedVariation];
@@ -826,21 +763,25 @@ export default function ImageGenerator() {
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
             >
               Use Selected Style
-            </button>
+            </button> */}
           </motion.div>
         )}
 
-        {/* Add the CustomGallery component at the end of your JSX */}
-        <CustomGallery
-          images={localImages.map(img => ({ 
-            url: img.url, 
-            prompt: img.label // Only pass the label instead of the full prompt
-          }))}
-          isOpen={isGalleryOpen}
-          onClose={() => setIsGalleryOpen(false)}
-          startIndex={selectedImageIndex}
-        />
+        {/* CustomGallery with null check */}
+        {isGalleryOpen && galleryImages.length > 0 && (
+          <CustomGallery
+            images={galleryImages}
+            isOpen={isGalleryOpen}
+            onClose={() => {
+              setIsGalleryOpen(false);
+              setSelectedImageIndex(0);
+            }}
+            startIndex={selectedImageIndex}
+          />
+        )}
       </div>
     </div>
   );
-} 
+};
+
+export default ImageGenerator; 

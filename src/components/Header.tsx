@@ -2,15 +2,27 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ThemeToggle } from './ui/ThemeToggle';
-import { motion } from 'framer-motion';
-import { Brain, Menu, X, Image as ImageIcon, Wand2 } from 'lucide-react';
-import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Brain, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const NAVIGATION = [
-  { name: 'Home', href: '/' },
-  { name: 'Create', href: '/#generate', scroll: true },
-  { name: 'Gallery', href: '/gallery' }
+  { 
+    name: 'Home', 
+    href: '/',
+    icon: <Brain className="w-4 h-4" />
+  },
+  { 
+    name: 'Create', 
+    href: '/#generate', 
+    scroll: true,
+    icon: <Brain className="w-4 h-4" />
+  },
+  { 
+    name: 'Gallery', 
+    href: '/gallery',
+    icon: <Brain className="w-4 h-4" />
+  }
 ];
 
 export function Header() {
@@ -59,7 +71,7 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/0 backdrop-blur-xl border-b border-white/5" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1332]/70 via-[#1a1332]/50 to-[#1a1332]/30 backdrop-blur-xl border-b border-white/10" />
       <nav className="container mx-auto px-4 py-4 relative">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 group">
@@ -71,7 +83,6 @@ export function Header() {
               MimesisAI
             </span>
           </Link>
-          
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {NAVIGATION.map((item) => (
@@ -98,45 +109,41 @@ export function Header() {
             ))}
           </div>
 
-          <div className="flex items-center space-x-4">
-            <ThemeToggle />
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-full hover:bg-gray-800/50"
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 text-gray-300 hover:text-white"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 bg-gray-900/95 backdrop-blur-lg mt-2 py-4 rounded-2xl border border-white/10 shadow-xl"
-          >
-            {NAVIGATION.map((item) => (
-              <button
-                key={item.href}
-                onClick={() => handleNavigation(item.href, item.scroll)}
-                className={`flex items-center gap-2 px-6 py-3 text-sm w-full text-left ${
-                  pathname === item.href
-                    ? 'text-white bg-gradient-to-r from-purple-500/20 to-blue-500/20'
-                    : 'text-gray-300 hover:bg-gray-800/50'
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </button>
-            ))}
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-full left-0 right-0 bg-gray-900/95 backdrop-blur-lg mt-2 py-4 rounded-2xl border border-white/10 shadow-xl md:hidden"
+            >
+              {NAVIGATION.map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => handleNavigation(item.href, item.scroll)}
+                  className={`flex items-center gap-2 px-6 py-3 text-sm w-full text-left ${
+                    pathname === item.href
+                      ? 'text-white bg-gradient-to-r from-purple-500/20 to-blue-500/20'
+                      : 'text-gray-300 hover:bg-gray-800/50'
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );

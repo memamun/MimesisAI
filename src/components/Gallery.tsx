@@ -40,7 +40,7 @@ export function Gallery() {
 
   useEffect(() => {
     loadImages();
-  }, []);
+  }, [setImages]);
 
   const handleToggleFavorite = async (id: string) => {
     try {

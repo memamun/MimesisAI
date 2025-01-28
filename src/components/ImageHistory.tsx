@@ -14,6 +14,7 @@ import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useGeneratedImages } from '@/store/imageStore';
+import { CustomGallery } from '@/components/ui/CustomGallery';
 
 interface HistoryImage {
   id: string;
@@ -24,6 +25,7 @@ interface HistoryImage {
   height: number;
   isFavorite: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export function ImageHistory() {
@@ -88,8 +90,9 @@ export function ImageHistory() {
   // Limit to last 32 images
   const limitedImages = images.slice(0, 32);
   
+  // Adjust the grouping to handle sets of 4 images
   const imageSets = limitedImages.reduce((sets: HistoryImage[][], image, index) => {
-    const setIndex = Math.floor(index / 4);
+    const setIndex = Math.floor(index / 4); // Changed from 3 to 4 to match variations
     if (!sets[setIndex]) {
       sets[setIndex] = [];
     }
@@ -177,83 +180,180 @@ function ImageSet({
   onToggleFavorite: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
-  if (!images || images.length === 0) return null;
+  // Find the index of the photographic style image
+  const defaultIndex = images.findIndex(img => 
+    img.style?.toLowerCase() === 'realistic' || 
+    img.style?.toLowerCase() === 'photographic'
+  );
+  
+  // Use photographic index if found, otherwise use 0
+  const [mainImageIndex, setMainImageIndex] = useState(defaultIndex !== -1 ? defaultIndex : 0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const mainImage = images[mainImageIndex];
+  
+  const getStyleIcon = (style: string) => {
+    switch (style) {
+      case 'realistic':
+        return <ImageIcon className="w-4 h-4" />;
+      case 'digital':
+        return <Palette className="w-4 h-4" />;
+      case 'cinematic':
+        return <Clapperboard className="w-4 h-4" />;
+      case 'anime':
+        return <Sparkles className="w-4 h-4" />;
+      default:
+        return <ImageIcon className="w-4 h-4" />;
+    }
+  };
 
-  const mainImage = images[0];
-  if (!mainImage) return null;
+  const getStyleLabel = (style: string) => {
+    switch (style) {
+      case 'realistic':
+        return 'Photographic';
+      case 'digital':
+        return 'Digital Art';
+      case 'cinematic':
+        return 'Cinematic';
+      case 'anime':
+        return 'Anime';
+      default:
+        return 'Generated';
+    }
+  };
+
+  const handleDownload = async (e: React.MouseEvent, image: HistoryImage) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(image.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `image-${image.id}-${image.style?.toLowerCase() || 'generated'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      // You might want to add a toast notification here for error feedback
+    }
+  };
+
+  if (!images || images.length === 0 || !mainImage) return null;
+
+  // Sort images to ensure photographic style appears first in thumbnails
+  const sortedImages = [...images].sort((a, b) => {
+    const isAPhotographic = a.style?.toLowerCase() === 'realistic' || a.style?.toLowerCase() === 'photographic';
+    const isBPhotographic = b.style?.toLowerCase() === 'realistic' || b.style?.toLowerCase() === 'photographic';
+    if (isAPhotographic) return -1;
+    if (isBPhotographic) return 1;
+    return 0;
+  });
 
   return (
-    <motion.div 
-      className="relative w-[280px] bg-black/20 rounded-xl p-4 backdrop-blur-sm border border-white/10 hover:bg-black/30 transition-colors"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-    >
-      <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-3">
-        <Image
-          src={mainImage.url}
-          alt={mainImage.prompt}
-          fill
-          className="object-cover"
-          sizes="280px"
-        />
-        
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={() => onToggleFavorite(mainImage.id)}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-            >
-              <Star
-                className={`w-5 h-5 ${mainImage.isFavorite ? 'text-yellow-400 fill-yellow-400' : 'text-white'}`}
-              />
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = mainImage.url;
-                  link.download = `image-${mainImage.id}.png`;
-                  link.click();
-                }}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <Download className="w-5 h-5 text-white" />
-              </button>
-              <button
-                onClick={() => onDelete(mainImage.id)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <Trash2 className="w-5 h-5 text-white" />
-              </button>
+    <>
+      <motion.div 
+        className="relative w-[280px] bg-gradient-to-b from-black/30 to-black/10 rounded-xl p-4 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 group"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.02 }}
+      >
+        {/* Main Image Container */}
+        <div 
+          className="relative w-full aspect-square rounded-lg overflow-hidden mb-3 cursor-pointer"
+          onClick={() => setIsGalleryOpen(true)}
+        >
+          <Image
+            src={mainImage.url}
+            alt={mainImage.prompt || "Generated image"}
+            fill
+            className="object-cover transform transition-transform duration-300 group-hover:scale-105"
+            sizes="280px"
+          />
+          
+          {/* Overlay and Controls */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(mainImage.id);
+                  }}
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <Star
+                    className={`w-5 h-5 ${mainImage.isFavorite ? 'text-yellow-400 fill-yellow-400' : 'text-white'}`}
+                  />
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => handleDownload(e, mainImage)}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors group/download"
+                  >
+                    <Download className="w-5 h-5 text-white group-hover/download:scale-110 transition-transform" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(mainImage.id);
+                    }}
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex gap-2 h-16">
-        {images.slice(1).map((image) => (
-          <motion.div
-            key={image.id}
-            className="relative flex-1 rounded-md overflow-hidden cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Image
-              src={image.url}
-              alt={image.prompt}
-              fill
-              className="object-cover"
-              sizes="80px"
-            />
-          </motion.div>
-        ))}
-      </div>
+        {/* Style Label */}
+        <div className="absolute top-6 left-6 px-2.5 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center gap-1.5">
+          {getStyleIcon(mainImage.style || 'default')}
+          <span className="text-xs font-medium text-white">
+            {getStyleLabel(mainImage.style || 'default')}
+          </span>
+        </div>
 
-      <div className="mt-3">
-        <p className="text-sm text-white/80 truncate">
-          {mainImage.prompt}
-        </p>
-      </div>
-    </motion.div>
+        {/* Thumbnail Strip - Using sorted images */}
+        <div className="w-full px-1">
+          <div className="grid grid-cols-4 gap-2">
+            {sortedImages.map((image, index) => (
+              <motion.button
+                key={image.id}
+                onClick={() => setMainImageIndex(images.findIndex(img => img.id === image.id))}
+                className={`relative aspect-square w-full rounded-md overflow-hidden ${
+                  images[mainImageIndex].id === image.id
+                    ? 'ring-2 ring-purple-500 ring-offset-1 ring-offset-black/50' 
+                    : 'hover:ring-2 hover:ring-white/50 hover:ring-offset-1 hover:ring-offset-black/50'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Image
+                  src={image.url}
+                  alt={image.prompt || "Variation"}
+                  fill
+                  className="object-cover"
+                  sizes="60px"
+                />
+                <div className={`absolute inset-0 transition-opacity duration-200 ${
+                  images[mainImageIndex].id === image.id ? 'bg-purple-500/10' : 'hover:bg-white/10'
+                }`} />
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      <CustomGallery
+        images={images}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        startIndex={mainImageIndex}
+      />
+    </>
   );
 } 

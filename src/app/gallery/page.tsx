@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Download, Trash2, ImageIcon, Palette, Sparkles, Clapperboard, Maximize2, Filter } from 'lucide-react';
+import { Star, Download, Trash2, ImageIcon, Palette, Sparkles, Clapperboard, Maximize2, Filter, Wand2 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getImages, toggleFavorite, deleteImage } from '@/app/actions/images';
 import { toast } from '@/components/ui/use-toast';
 import { CustomGallery } from '@/components/ui/CustomGallery';
@@ -112,7 +113,7 @@ export default function GalleryPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col space-y-6 mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-white">Gallery</h1>
             <motion.button
@@ -124,8 +125,20 @@ export default function GalleryPage() {
               <Maximize2 className="w-5 h-5 text-white" />
             </motion.button>
           </div>
-          <div className="text-sm text-white/60">
-            {filteredImages.length} {filteredImages.length === 1 ? 'image' : 'images'}
+
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/#generate"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r 
+                from-purple-600/20 to-blue-600/20 text-purple-400 
+                hover:from-purple-600/30 hover:to-blue-600/30 transition-colors"
+            >
+              <Wand2 className="w-4 h-4" />
+              <span>AI Generate</span>
+            </Link>
+            <div className="text-sm text-white/60">
+              {filteredImages.length} {filteredImages.length === 1 ? 'image' : 'images'}
+            </div>
           </div>
         </div>
 

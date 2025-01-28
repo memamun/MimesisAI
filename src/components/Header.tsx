@@ -1,23 +1,61 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { motion } from 'framer-motion';
-import { Brain, Menu, X } from 'lucide-react';
+import { Brain, Menu, X, Image as ImageIcon, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 
 const NAVIGATION = [
   { name: 'Home', href: '/' },
-  { name: 'Create', href: '/create' },
-  { name: 'Explore', href: '/explore' },
-  { name: 'Community', href: '/community' },
-  { name: 'Pricing', href: '/pricing' },
+  { name: 'Create', href: '/#generate', scroll: true },
+  { name: 'Gallery', href: '/gallery' }
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleNavigation = (href: string, scroll?: boolean) => {
+    if (scroll) {
+      // If we're not on the home page, first navigate to home
+      if (pathname !== '/') {
+        router.push('/');
+        // Wait for navigation to complete before scrolling
+        setTimeout(() => {
+          const element = document.getElementById('generate');
+          if (element) {
+            const headerOffset = 100; // Adjust this value based on your header height + desired padding
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+      } else {
+        // If we're already on home page, just scroll
+        const element = document.getElementById('generate');
+        if (element) {
+          const headerOffset = 100; // Adjust this value based on your header height + desired padding
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    } else {
+      router.push(href);
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -37,9 +75,9 @@ export function Header() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {NAVIGATION.map((item) => (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
+                onClick={() => handleNavigation(item.href, item.scroll)}
                 className="relative px-4 py-2 rounded-full text-sm font-medium transition-colors"
               >
                 {pathname === item.href && (
@@ -50,10 +88,13 @@ export function Header() {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className={pathname === item.href ? 'text-white' : 'text-gray-300 hover:text-white'}>
+                <span className={`inline-flex items-center gap-1.5 ${
+                  pathname === item.href ? 'text-white' : 'text-gray-300 hover:text-white'
+                }`}>
+                  {item.icon}
                   {item.name}
                 </span>
-              </Link>
+              </button>
             ))}
           </div>
 
@@ -81,18 +122,18 @@ export function Header() {
             className="absolute top-full left-0 right-0 bg-gray-900/95 backdrop-blur-lg mt-2 py-4 rounded-2xl border border-white/10 shadow-xl"
           >
             {NAVIGATION.map((item) => (
-              <Link
+              <button
                 key={item.href}
-                href={item.href}
-                className={`block px-6 py-3 text-sm ${
+                onClick={() => handleNavigation(item.href, item.scroll)}
+                className={`flex items-center gap-2 px-6 py-3 text-sm w-full text-left ${
                   pathname === item.href
                     ? 'text-white bg-gradient-to-r from-purple-500/20 to-blue-500/20'
                     : 'text-gray-300 hover:bg-gray-800/50'
                 }`}
-                onClick={() => setIsMenuOpen(false)}
               >
+                {item.icon}
                 {item.name}
-              </Link>
+              </button>
             ))}
           </motion.div>
         )}

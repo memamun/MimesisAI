@@ -563,279 +563,281 @@ export default function ImageGenerator() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4">
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <div className="bg-gray-900/50 rounded-xl border border-white/5">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-                <span className="text-sm font-medium text-gray-300">AI Image Generator</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <div className="flex items-center gap-1">
-                  <Palette className="w-4 h-4" />
-                  <span>4 Styles</span>
+    <div id="generate" className="relative py-8">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
+            <div className="bg-gray-900/50 rounded-xl border border-white/5">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  <span className="text-sm font-medium text-gray-300">AI Image Generator</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Layers className="w-4 h-4" />
-                  <span>Multiple Sizes</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Zap className="w-4 h-4" />
-                  <span>Instant Generation</span>
+                <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <Palette className="w-4 h-4" />
+                    <span>4 Styles</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Layers className="w-4 h-4" />
+                    <span>Multiple Sizes</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Zap className="w-4 h-4" />
+                    <span>Instant Generation</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="p-4">
-              <div className="flex space-x-1 mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
-                <button
-                  onClick={() => setPromptMode('enhanced')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                    promptMode === 'enhanced'
-                      ? 'bg-purple-600/20 text-purple-400'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Enhanced
-                </button>
-                <button
-                  onClick={() => setPromptMode('direct')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                    promptMode === 'direct'
-                      ? 'bg-purple-600/20 text-purple-400'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Direct
-                </button>
-              </div>
+              
+              <div className="p-4">
+                <div className="flex space-x-1 mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
+                  <button
+                    onClick={() => setPromptMode('enhanced')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      promptMode === 'enhanced'
+                        ? 'bg-purple-600/20 text-purple-400'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Enhanced
+                  </button>
+                  <button
+                    onClick={() => setPromptMode('direct')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      promptMode === 'direct'
+                        ? 'bg-purple-600/20 text-purple-400'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Direct
+                  </button>
+                </div>
 
-              <div className="relative">
-                <textarea
-                  id="prompt-input"
-                  value={prompt}
-                  onChange={handlePromptChange}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.shiftKey) {
-                      e.preventDefault();
-                      handleGenerate(prompt);
-                    }
-                  }}
-                  placeholder="Describe what you want to see in the image. Be specific and detailed. Avoid using special characters or markdown."
-                  rows={4}
-                  className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
-                />
-                <button
-                  onClick={handleEnhanceClick}
-                  disabled={!prompt.trim() || isEnhancing}
-                  className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${
-                    isEnhancing 
-                      ? 'bg-purple-500/20 text-purple-400' 
-                      : prompt.trim() 
-                        ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400' 
-                        : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
-                  }`}
-                  title="Enhance prompt with AI"
-                >
-                  <Sparkles 
-                    className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} 
+                <div className="relative">
+                  <textarea
+                    id="prompt-input"
+                    value={prompt}
+                    onChange={handlePromptChange}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.shiftKey) {
+                        e.preventDefault();
+                        handleGenerate(prompt);
+                      }
+                    }}
+                    placeholder="Describe what you want to see in the image. Be specific and detailed. Avoid using special characters or markdown."
+                    rows={4}
+                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                   />
-                </button>
-                {promptMode === 'enhanced' && (
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Click the sparkle icon to enhance your prompt with AI</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 bg-black/20">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <ImageIcon className="w-4 h-4" />
-                  <span>4 Variations</span>
-                </div>
-                <div className="h-4 w-px bg-gray-700" />
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <Settings2 className="w-4 h-4" />
-                  <span>Custom Size</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleGenerate(prompt)}
-                  disabled={loading || !prompt.trim()}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                    loading || !prompt.trim()
-                      ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30'
-                  }`}
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="w-4 h-4" />
-                  )}
-                  <span>{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full lg:w-48">
-          <SizeControl />
-        </div>
-      </div>
-
-      {/* Results Grid with Save Button */}
-      <div className="mt-8">
-        {showSaveButton && images.length > 0 && (
-          <div className="mb-4 flex justify-end">
-            <button
-              onClick={handleSaveToHistory}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30 flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Save to History</span>
-            </button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {images.length > 0 ? (
-            images.map((image, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
-                  selectedVariation === index 
-                    ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
-                    : 'border-white/5 hover:border-white/20'
-                }`}
-                onClick={() => {
-                  setSelectedVariation(index);
-                  setSelectedImageIndex(index);
-                  setIsGalleryOpen(true);
-                }}
-              >
-                <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
-                    {image.style === 'realistic' && <ImageIcon className="w-3 h-3" />}
-                    {image.style === 'digital' && <Palette className="w-3 h-3" />}
-                    {image.style === 'cinematic' && <Clapperboard className="w-3 h-3" />}
-                    {image.style === 'anime' && <Sparkles className="w-3 h-3" />}
-                    <span>{image.label}</span>
-                  </div>
-                  {selectedVariation === index && (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
-                      <Check className="w-3 h-3" />
-                      <span>Selected</span>
+                  <button
+                    onClick={handleEnhanceClick}
+                    disabled={!prompt.trim() || isEnhancing}
+                    className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${
+                      isEnhancing 
+                        ? 'bg-purple-500/20 text-purple-400' 
+                        : prompt.trim() 
+                          ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400' 
+                          : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
+                    }`}
+                    title="Enhance prompt with AI"
+                  >
+                    <Sparkles 
+                      className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} 
+                    />
+                  </button>
+                  {promptMode === 'enhanced' && (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Click the sparkle icon to enhance your prompt with AI</span>
                     </div>
                   )}
                 </div>
-                <img
-                  src={image.url}
-                  alt={image.label}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        downloadImage(image.url, prompt, image.label);
-                      }}
-                      className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download</span>
-                    </motion.button>
+              </div>
+
+              <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 bg-black/20">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>4 Variations</span>
+                  </div>
+                  <div className="h-4 w-px bg-gray-700" />
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <Settings2 className="w-4 h-4" />
+                    <span>Custom Size</span>
                   </div>
                 </div>
-              </motion.div>
-            ))
-          ) : (
-            <motion.div 
-              className="col-span-full h-96 flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <div className="text-center">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="relative"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl rounded-full" />
-                  <ImageIcon className="w-20 h-20 mx-auto mb-4 text-gray-400 relative" />
-                </motion.div>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-lg text-gray-400"
-                >
-                  Your variations will appear here
-                </motion.p>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-sm text-gray-500 mt-2"
-                >
-                  We'll generate 4 unique interpretations with different styles
-                </motion.p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleGenerate(prompt)}
+                    disabled={loading || !prompt.trim()}
+                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+                      loading || !prompt.trim()
+                        ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30'
+                    }`}
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-4 h-4" />
+                    )}
+                    <span>{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
+                  </button>
+                </div>
               </div>
-            </motion.div>
-          )}
+            </div>
+          </div>
+
+          <div className="w-full lg:w-48">
+            <SizeControl />
+          </div>
         </div>
-      </div>
 
-      {/* Selection Action Button */}
-      {selectedVariation !== null && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <button
-            onClick={() => {
-              // Handle selection - you can save to history, regenerate with this style, etc.
-              const selected = images[selectedVariation];
-              console.log('Selected variation:', selected);
-            }}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+        {/* Results Grid with Save Button */}
+        <div className="mt-8">
+          {showSaveButton && images.length > 0 && (
+            <div className="mb-4 flex justify-end">
+              <button
+                onClick={handleSaveToHistory}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30 flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Save to History</span>
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {images.length > 0 ? (
+              images.map((image, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
+                    selectedVariation === index 
+                      ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
+                      : 'border-white/5 hover:border-white/20'
+                  }`}
+                  onClick={() => {
+                    setSelectedVariation(index);
+                    setSelectedImageIndex(index);
+                    setIsGalleryOpen(true);
+                  }}
+                >
+                  <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
+                      {image.style === 'realistic' && <ImageIcon className="w-3 h-3" />}
+                      {image.style === 'digital' && <Palette className="w-3 h-3" />}
+                      {image.style === 'cinematic' && <Clapperboard className="w-3 h-3" />}
+                      {image.style === 'anime' && <Sparkles className="w-3 h-3" />}
+                      <span>{image.label}</span>
+                    </div>
+                    {selectedVariation === index && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
+                        <Check className="w-3 h-3" />
+                        <span>Selected</span>
+                      </div>
+                    )}
+                  </div>
+                  <img
+                    src={image.url}
+                    alt={image.label}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadImage(image.url, prompt, image.label);
+                        }}
+                        className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download</span>
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <motion.div 
+                className="col-span-full h-96 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="text-center">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="relative"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl rounded-full" />
+                    <ImageIcon className="w-20 h-20 mx-auto mb-4 text-gray-400 relative" />
+                  </motion.div>
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-lg text-gray-400"
+                  >
+                    Your variations will appear here
+                  </motion.p>
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-sm text-gray-500 mt-2"
+                  >
+                    We'll generate 4 unique interpretations with different styles
+                  </motion.p>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+
+        {/* Selection Action Button */}
+        {selectedVariation !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
           >
-            Use Selected Style
-          </button>
-        </motion.div>
-      )}
+            <button
+              onClick={() => {
+                // Handle selection - you can save to history, regenerate with this style, etc.
+                const selected = images[selectedVariation];
+                console.log('Selected variation:', selected);
+              }}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
+            >
+              Use Selected Style
+            </button>
+          </motion.div>
+        )}
 
-      {/* Add the CustomGallery component at the end of your JSX */}
-      <CustomGallery
-        images={images.map(img => ({ 
-          url: img.url, 
-          prompt: img.label // Only pass the label instead of the full prompt
-        }))}
-        isOpen={isGalleryOpen}
-        onClose={() => setIsGalleryOpen(false)}
-        startIndex={selectedImageIndex}
-      />
+        {/* Add the CustomGallery component at the end of your JSX */}
+        <CustomGallery
+          images={images.map(img => ({ 
+            url: img.url, 
+            prompt: img.label // Only pass the label instead of the full prompt
+          }))}
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          startIndex={selectedImageIndex}
+        />
+      </div>
     </div>
   );
 } 

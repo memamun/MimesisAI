@@ -70,7 +70,7 @@ export function Hero() {
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
               </motion.button>
             </Link>
-            <Link href="/explore">
+            <Link href="/gallery">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { 
   Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
   Square, RectangleVertical, RectangleHorizontal, Settings2, X, RefreshCw,
-  Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle, Clapperboard
+  Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle, Clapperboard,
+  Trash2, Star
 } from 'lucide-react';
 import { saveGeneratedImage } from '@/app/actions/images';
 import { CustomGallery } from './ui/CustomGallery';
@@ -21,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { generateImage } from '@/services/pollinations';
 
 const IMAGE_SIZES = [
   { width: 1024, height: 768, label: 'Landscape', icon: RectangleHorizontal },
@@ -255,8 +257,16 @@ export default function ImageGenerator() {
   const { addImages, setImages } = useGeneratedImages();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [images, setLocalImages] = useState<Array<{ url: string; prompt?: string }>>([]);
-  const [selectedSize, setSelectedSize] = useState({ width: 512, height: 512 });
+  const [localImages, setLocalImages] = useState<Array<{
+    url: string;
+    label?: string;
+    style?: string;
+  }>>([]);
+  const [selectedSize, setSelectedSize] = useState<SizeOption>({
+    width: 1024,
+    height: 1024,
+    label: 'Square'
+  });
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isCustomSize, setIsCustomSize] = useState(false);
@@ -360,22 +370,17 @@ export default function ImageGenerator() {
     try {
       const variations = [
         {
-          prompt: `${inputPrompt}, ultra realistic 8k photography, professional lighting, RAW photo, highly detailed`,
+          prompt: `${inputPrompt}, ultra realistic 8k photography, professional lighting`,
           label: 'Photographic',
           style: 'realistic'
         },
         {
-          prompt: `${inputPrompt}, digital art, highly detailed, fantasy style, vibrant colors`,
+          prompt: `${inputPrompt}, digital art, highly detailed, fantasy style`,
           label: 'Digital Art',
           style: 'digital'
         },
         {
-          prompt: `${inputPrompt}, oil painting, masterpiece, classical art style, detailed brushwork`,
-          label: 'Oil Painting',
-          style: 'painting'
-        },
-        {
-          prompt: `${inputPrompt}, anime style, highly detailed, studio ghibli, vibrant`,
+          prompt: `${inputPrompt}, anime style, highly detailed, studio ghibli`,
           label: 'Anime',
           style: 'anime'
         }
@@ -385,11 +390,14 @@ export default function ImageGenerator() {
       for (const variation of variations) {
         try {
           const seed = Math.floor(Math.random() * 1000000);
-          const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(variation.prompt)}?seed=${seed}&width=${selectedSize.width}&height=${selectedSize.height}&nologo=true`;
+          const imageUrl = await generateImage(variation.prompt, {
+            seed,
+            width: selectedSize.width,
+            height: selectedSize.height
+          });
           
           generatedImages.push({
             url: imageUrl,
-            prompt: inputPrompt,
             label: variation.label,
             style: variation.style
           });
@@ -399,18 +407,13 @@ export default function ImageGenerator() {
         }
       }
 
-      if (generatedImages.length > 0) {
-        setLocalImages(generatedImages);
-        setShowSaveButton(true);
-        setShowGallery(true);
-      }
-
+      setLocalImages(generatedImages);
+      setShowSaveButton(true);
     } catch (error) {
-      console.error('Generation error:', error);
       toast({
-        title: "Generation Failed",
-        description: "Could not generate images. Please try again.",
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to generate images. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
@@ -420,7 +423,7 @@ export default function ImageGenerator() {
   const handleSaveToHistory = async () => {
     try {
       const savedImages = [];
-      for (const image of images) {
+      for (const image of localImages) {
         const savedImage = await saveGeneratedImage({
           url: image.url,
           prompt: image.prompt || '',
@@ -487,13 +490,13 @@ export default function ImageGenerator() {
 
     setSizeWarning(null);
     setCustomSize({ width, height });
-    setSelectedSize({ width, height });
+    setSelectedSize({ width, height, label: selectedSize.label });
   };
 
   const SizeControl = () => {
     const handleSizeChange = (width: number, height: number) => {
       setCustomSize({ width, height });
-      setSelectedSize({ width, height });
+      setSelectedSize({ width, height, label: selectedSize.label });
     };
 
     return (
@@ -694,7 +697,7 @@ export default function ImageGenerator() {
 
         {/* Results Grid with Save Button */}
         <div className="mt-8">
-          {showSaveButton && images.length > 0 && (
+          {showSaveButton && localImages.length > 0 && (
             <div className="mb-4 flex justify-end">
               <button
                 onClick={handleSaveToHistory}
@@ -707,8 +710,8 @@ export default function ImageGenerator() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {images.length > 0 ? (
-              images.map((image, index) => (
+            {localImages.length > 0 ? (
+              localImages.map((image, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -817,7 +820,7 @@ export default function ImageGenerator() {
             <button
               onClick={() => {
                 // Handle selection - you can save to history, regenerate with this style, etc.
-                const selected = images[selectedVariation];
+                const selected = localImages[selectedVariation];
                 console.log('Selected variation:', selected);
               }}
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all"
@@ -829,7 +832,7 @@ export default function ImageGenerator() {
 
         {/* Add the CustomGallery component at the end of your JSX */}
         <CustomGallery
-          images={images.map(img => ({ 
+          images={localImages.map(img => ({ 
             url: img.url, 
             prompt: img.label // Only pass the label instead of the full prompt
           }))}

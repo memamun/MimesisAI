@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Download, RefreshCw, Trash2, Clock, Filter } from 'lucide-react';
+import { 
+  Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
+  Square, RectangleVertical, RectangleHorizontal, Settings2, X,
+  Palette, Layers, Zap, Monitor, Smartphone, Clapperboard, Star, RefreshCw, Trash2, Clock
+} from 'lucide-react';
 import { Button } from './ui/Button';
 import { ImagePopup } from './ui/ImagePopup';
 import { getImages, toggleFavorite, deleteImage } from '@/app/actions/images';

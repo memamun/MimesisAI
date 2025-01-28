@@ -4,15 +4,28 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
-  Square, RectangleVertical, RectangleHorizontal, Settings2, X, RefreshCcw,
-  Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle
+  Square, RectangleVertical, RectangleHorizontal, Settings2, X, RefreshCw,
+  Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle, Clapperboard
 } from 'lucide-react';
-import { saveImage } from '@/services/db';
+import { saveGeneratedImage } from '@/app/actions/images';
+import { CustomGallery } from './ui/CustomGallery';
+import { toast } from '@/components/ui/use-toast';
+import { useGeneratedImages } from '@/store/imageStore';
+import { getImages } from '@/app/actions/images';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const IMAGE_SIZES = [
+  { width: 1024, height: 768, label: 'Landscape', icon: RectangleHorizontal },
   { width: 512, height: 512, label: 'Square', icon: Square },
   { width: 768, height: 1024, label: 'Portrait', icon: RectangleVertical },
-  { width: 1024, height: 768, label: 'Landscape', icon: RectangleHorizontal },
   { width: 1704, height: 960, label: 'Desktop', icon: Monitor },
   { width: 960, height: 1704, label: 'Mobile', icon: Smartphone },
 ];
@@ -37,10 +50,10 @@ const STYLE_VARIATIONS = [
     prompt: 'cinematic lighting, movie scene, dramatic atmosphere, depth of field, 35mm film' 
   },
   { 
-    id: 'artistic', 
-    label: 'Artistic', 
-    icon: '🖌️', 
-    prompt: 'digital illustration, vibrant colors, artistic style, detailed artwork, trending on artstation' 
+    id: 'anime', 
+    label: 'Anime', 
+    icon: '🎯', 
+    prompt: 'anime style, high quality anime art, studio ghibli, detailed anime illustration, vibrant anime colors, anime key visual' 
   },
 ];
 
@@ -48,9 +61,26 @@ interface GeneratedImage {
   url: string;
   prompt: string;
   label: string;
-  style: string;
+  style?: string;
   originalPrompt: string;
+  id: string;
 }
+
+// Create a custom event emitter for real-time updates
+const imageEventEmitter = {
+  listeners: new Set<(images: GeneratedImage[]) => void>(),
+  
+  emit(images: GeneratedImage[]) {
+    this.listeners.forEach(listener => listener(images));
+  },
+  
+  subscribe(listener: (images: GeneratedImage[]) => void) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+};
+
+export { imageEventEmitter };
 
 const NumberInput = ({ 
   value, 
@@ -187,11 +217,46 @@ const ImageSizeInput = ({
 
 type PromptMode = 'enhanced' | 'direct';
 
+const enhancePrompt = async (prompt: string) => {
+  try {
+    const cleanedPrompt = prompt
+      .replace(/Image Prompt Description:|Prompt:|Description:/gi, '')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/[^\w\s,.-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    const enhancementRequest = `Create a image generation prompt for ${cleanedPrompt}. Focus on visual details and artistic elements.`;
+    
+    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(enhancementRequest)}`);
+    if (!response.ok) throw new Error('Failed to enhance prompt');
+    
+    const enhancedText = await response.text();
+    
+    const finalPrompt = enhancedText
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/Create a image generation prompt for/gi, '')
+      .replace(/Image prompt:/gi, '')
+      .replace(/Prompt:/gi, '')
+      .trim();
+    
+    return finalPrompt;
+  } catch (error) {
+    console.error('Error enhancing prompt:', error);
+    throw error;
+  }
+};
+
 export default function ImageGenerator() {
+  const { addImages, setImages } = useGeneratedImages();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState<GeneratedImage[]>([]);
-  const [selectedSize, setSelectedSize] = useState(IMAGE_SIZES[0]);
+  const [images, setLocalImages] = useState<Array<{ url: string; prompt?: string }>>([]);
+  const [selectedSize, setSelectedSize] = useState({ width: 512, height: 512 });
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isCustomSize, setIsCustomSize] = useState(false);
@@ -200,6 +265,11 @@ export default function ImageGenerator() {
   const [tempWidth, setTempWidth] = useState('');
   const [tempHeight, setTempHeight] = useState('');
   const [promptMode, setPromptMode] = useState<PromptMode>('enhanced');
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(false);
 
   const handlePromptChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -212,82 +282,170 @@ export default function ImageGenerator() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const downloadImage = async (url: string, promptText: string) => {
+  const downloadImage = async (imageUrl: string, basePrompt: string, label: string) => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(imageUrl);
       const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `${promptText.slice(0, 30)}.png`;
+      
+      // Create a clean filename using the prompt and style label
+      const cleanPrompt = basePrompt
+        .slice(0, 30) // Limit prompt length
+        .replace(/[^a-z0-9]/gi, '_') // Replace special chars with underscore
+        .toLowerCase();
+      
+      const cleanLabel = label.toLowerCase().replace(/\s+/g, '_');
+      const timestamp = new Date().getTime();
+      
+      // Format: prompt_style_timestamp.png
+      link.href = url;
+      link.download = `${cleanPrompt}_${cleanLabel}_${timestamp}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Started",
+        description: `Downloading ${label} version`,
+      });
     } catch (error) {
-      console.error('Failed to download image:', error);
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download the image. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const generateDirectVariations = (basePrompt: string) => {
-    return [
-      {
-        prompt: basePrompt,
-        label: 'Original',
-        style: 'custom'
-      },
-      {
-        prompt: `${basePrompt}, anime key visual style, highly detailed anime illustration, studio ghibli inspired, vibrant colors, soft lighting, cel shading, beautiful anime art, trending on artstation, professional anime artwork`,
-        label: 'Anime',
-        style: 'anime'
-      },
-      {
-        prompt: `${basePrompt}, digital art, highly detailed, intricate details, sharp focus, vibrant colors, professional digital painting, trending on artstation, 8k uhd`,
-        label: 'Digital',
-        style: 'digital'
-      },
-      {
-        prompt: `${basePrompt}, realistic style, photorealistic, hyperrealistic, highly detailed, dramatic lighting, professional photography, 8k uhd`,
-        label: 'Realistic',
-        style: 'realistic'
-      }
-    ];
-  };
-
-  const handleGenerate = async () => {
-    if (!prompt.trim() || loading) return;
+  const handleEnhanceClick = async () => {
+    if (!prompt.trim() || isEnhancing) return;
     
-    setLoading(true);
+    setIsEnhancing(true);
     try {
-      const currentSize = isCustomSize ? customSize : selectedSize;
-      
-      if (promptMode === 'direct') {
-        // Direct mode: 4 variations without prompt enhancement
-        const variations = generateDirectVariations(prompt);
-        const generatedImages = variations.map(variation => ({
-          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(variation.prompt)}?width=${currentSize.width}&height=${currentSize.height}&nologo=true`,
-          prompt: variation.prompt,
-          label: variation.label,
-          style: variation.style,
-          originalPrompt: prompt
-        }));
-        setImages(generatedImages);
-      } else {
-        // Enhanced mode: with prompt enhancement and variations
-        const variations = await generatePromptVariations(prompt);
-        const generatedImages = variations.map(variation => ({
-          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(variation.prompt)}?width=${currentSize.width}&height=${currentSize.height}&nologo=true`,
-          prompt: variation.prompt,
-          label: variation.label,
-          style: variation.style,
-          originalPrompt: prompt
-        }));
-        setImages(generatedImages);
+      toast({
+        title: "Enhancing Prompt",
+        description: "Creating detailed image generation prompt...",
+      });
+
+      const enhancedPrompt = await enhancePrompt(prompt);
+      if (enhancedPrompt) {
+        setPrompt(enhancedPrompt);
+        toast({
+          title: "Prompt Enhanced",
+          description: "Your prompt has been optimized for image generation",
+        });
       }
     } catch (error) {
-      console.error('Failed to generate images:', error);
+      console.error('Enhancement error:', error);
+      toast({
+        title: "Enhancement Failed",
+        description: "Could not enhance the prompt. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleGenerate = async (inputPrompt: string) => {
+    if (!inputPrompt.trim() || loading) return;
+    
+    setLoading(true);
+    setLocalImages([]);
+    setShowSaveButton(false);
+    
+    try {
+      const variations = [
+        {
+          prompt: `${inputPrompt}, ultra realistic 8k photography, professional lighting, RAW photo, highly detailed`,
+          label: 'Photographic',
+          style: 'realistic'
+        },
+        {
+          prompt: `${inputPrompt}, digital art, highly detailed, fantasy style, vibrant colors`,
+          label: 'Digital Art',
+          style: 'digital'
+        },
+        {
+          prompt: `${inputPrompt}, oil painting, masterpiece, classical art style, detailed brushwork`,
+          label: 'Oil Painting',
+          style: 'painting'
+        },
+        {
+          prompt: `${inputPrompt}, anime style, highly detailed, studio ghibli, vibrant`,
+          label: 'Anime',
+          style: 'anime'
+        }
+      ];
+
+      const generatedImages = [];
+      for (const variation of variations) {
+        try {
+          const seed = Math.floor(Math.random() * 1000000);
+          const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(variation.prompt)}?seed=${seed}&width=${selectedSize.width}&height=${selectedSize.height}&nologo=true`;
+          
+          generatedImages.push({
+            url: imageUrl,
+            prompt: inputPrompt,
+            label: variation.label,
+            style: variation.style
+          });
+        } catch (error) {
+          console.error(`Failed to generate ${variation.label} variation:`, error);
+          continue;
+        }
+      }
+
+      if (generatedImages.length > 0) {
+        setLocalImages(generatedImages);
+        setShowSaveButton(true);
+        setShowGallery(true);
+      }
+
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Could not generate images. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveToHistory = async () => {
+    try {
+      const savedImages = [];
+      for (const image of images) {
+        const savedImage = await saveGeneratedImage({
+          url: image.url,
+          prompt: image.prompt || '',
+          style: image.style,
+          width: selectedSize.width,
+          height: selectedSize.height
+        });
+        if (savedImage) savedImages.push(savedImage);
+      }
+      
+      addImages(savedImages);
+      const latestImages = await getImages();
+      setImages(latestImages);
+      setShowSaveButton(false);
+      
+      toast({
+        title: "Saved",
+        description: "Images saved to history",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save images",
+        variant: "destructive",
+      });
     }
   };
 
@@ -329,13 +487,13 @@ export default function ImageGenerator() {
 
     setSizeWarning(null);
     setCustomSize({ width, height });
-    setSelectedSize({ width, height, label: 'Custom', icon: Settings2 });
+    setSelectedSize({ width, height });
   };
 
   const SizeControl = () => {
     const handleSizeChange = (width: number, height: number) => {
       setCustomSize({ width, height });
-      setSelectedSize({ width, height, label: 'Custom', icon: Settings2 });
+      setSelectedSize({ width, height });
     };
 
     return (
@@ -462,25 +620,33 @@ export default function ImageGenerator() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.shiftKey) {
                       e.preventDefault();
-                      handleGenerate();
+                      handleGenerate(prompt);
                     }
                   }}
-                  placeholder={
-                    promptMode === 'direct'
-                      ? "Enter your detailed prompt..."
-                      : "Describe your image idea..."
-                  }
+                  placeholder="Describe what you want to see in the image. Be specific and detailed. Avoid using special characters or markdown."
                   rows={4}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                  className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                 />
-                {promptMode === 'direct' && (
-                  <div className="mt-2 text-xs text-gray-400">
-                    Direct mode: Your prompt will be used exactly as written to generate 4 variations (Original, Anime, Digital Art, and Realistic).
-                  </div>
-                )}
+                <button
+                  onClick={handleEnhanceClick}
+                  disabled={!prompt.trim() || isEnhancing}
+                  className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${
+                    isEnhancing 
+                      ? 'bg-purple-500/20 text-purple-400' 
+                      : prompt.trim() 
+                        ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400' 
+                        : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
+                  }`}
+                  title="Enhance prompt with AI"
+                >
+                  <Sparkles 
+                    className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} 
+                  />
+                </button>
                 {promptMode === 'enhanced' && (
-                  <div className="mt-2 text-xs text-gray-400">
-                    Enhanced mode: Your prompt will be enhanced and generate 2 variations (Original and Anime style).
+                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Click the sparkle icon to enhance your prompt with AI</span>
                   </div>
                 )}
               </div>
@@ -500,7 +666,7 @@ export default function ImageGenerator() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleGenerate()}
+                  onClick={() => handleGenerate(prompt)}
                   disabled={loading || !prompt.trim()}
                   className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                     loading || !prompt.trim()
@@ -525,117 +691,119 @@ export default function ImageGenerator() {
         </div>
       </div>
 
-      {/* Results Grid with Original Prompt */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {images.length > 0 ? (
-          images.map((image, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
-                selectedVariation === index 
-                  ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
-                  : 'border-white/5 hover:border-white/20'
-              }`}
-              onClick={() => {
-                setSelectedVariation(index);
-                saveSelectedImage(image);
-              }}
+      {/* Results Grid with Save Button */}
+      <div className="mt-8">
+        {showSaveButton && images.length > 0 && (
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={handleSaveToHistory}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30 flex items-center gap-2"
             >
-              <div className="absolute top-3 left-3 z-10 flex gap-2">
-                <span className="px-2 py-1 text-xs rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
-                  {image.label}
-                </span>
-                {selectedVariation === index && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
-                    Selected
-                  </span>
-                )}
-              </div>
-              <img
-                src={image.url}
-                alt={prompt}
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="relative group/prompt mb-3">
-                    <p className="text-sm text-gray-300 line-clamp-2">
-                      {prompt}
-                    </p>
-                    <button
+              <RefreshCw className="w-4 h-4" />
+              <span>Save to History</span>
+            </button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {images.length > 0 ? (
+            images.map((image, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
+                  selectedVariation === index 
+                    ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
+                    : 'border-white/5 hover:border-white/20'
+                }`}
+                onClick={() => {
+                  setSelectedVariation(index);
+                  setSelectedImageIndex(index);
+                  setIsGalleryOpen(true);
+                }}
+              >
+                <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
+                    {image.style === 'realistic' && <ImageIcon className="w-3 h-3" />}
+                    {image.style === 'digital' && <Palette className="w-3 h-3" />}
+                    {image.style === 'cinematic' && <Clapperboard className="w-3 h-3" />}
+                    {image.style === 'anime' && <Sparkles className="w-3 h-3" />}
+                    <span>{image.label}</span>
+                  </div>
+                  {selectedVariation === index && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
+                      <Check className="w-3 h-3" />
+                      <span>Selected</span>
+                    </div>
+                  )}
+                </div>
+                <img
+                  src={image.url}
+                  alt={image.label}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleCopyPrompt(prompt, index);
+                        downloadImage(image.url, prompt, image.label);
                       }}
-                      className="absolute -right-2 -top-2 p-2 rounded-full bg-black/50 opacity-0 group-hover/prompt:opacity-100 transition-opacity"
+                      className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
                     >
-                      {copiedIndex === index ? (
-                        <Check className="w-4 h-4 text-green-400" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
-                      )}
-                    </button>
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </motion.button>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadImage(image.url, prompt);
-                    }}
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
-                  </motion.button>
                 </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div 
+              className="col-span-full h-96 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="text-center">
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.5, 1, 0.5]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl rounded-full" />
+                  <ImageIcon className="w-20 h-20 mx-auto mb-4 text-gray-400 relative" />
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-lg text-gray-400"
+                >
+                  Your variations will appear here
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-sm text-gray-500 mt-2"
+                >
+                  We'll generate 4 unique interpretations with different styles
+                </motion.p>
               </div>
             </motion.div>
-          ))
-        ) : (
-          <motion.div 
-            className="col-span-full h-96 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div className="text-center">
-              <motion.div
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl rounded-full" />
-                <ImageIcon className="w-20 h-20 mx-auto mb-4 text-gray-400 relative" />
-              </motion.div>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-lg text-gray-400"
-              >
-                Your variations will appear here
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-sm text-gray-500 mt-2"
-              >
-                We'll generate 4 unique interpretations with different styles
-              </motion.p>
-            </div>
-          </motion.div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Selection Action Button */}
@@ -657,6 +825,17 @@ export default function ImageGenerator() {
           </button>
         </motion.div>
       )}
+
+      {/* Add the CustomGallery component at the end of your JSX */}
+      <CustomGallery
+        images={images.map(img => ({ 
+          url: img.url, 
+          prompt: img.label // Only pass the label instead of the full prompt
+        }))}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        startIndex={selectedImageIndex}
+      />
     </div>
   );
 } 

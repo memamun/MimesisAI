@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma generate && prisma migrate resolve --applied 20250128015433_init && prisma migrate deploy && next build",
+  "buildCommand": "prisma generate && prisma migrate deploy && next build",
   "installCommand": "npm install",
   "framework": "nextjs"
 }

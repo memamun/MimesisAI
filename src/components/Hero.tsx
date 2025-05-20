@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Brain, ArrowRight, Sparkles, Code, Palette, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 const features = [
   {
@@ -28,6 +29,24 @@ const features = [
 ];
 
 export function Hero() {
+  // Add state to track if component is mounted
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state to true after component mounts
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Return early if not mounted yet
+  if (!isMounted) {
+    return (
+      <div className="relative overflow-hidden min-h-[70vh]">
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-blue-500/5 to-transparent" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative overflow-hidden">
       {/* Background Effects */}

@@ -15,7 +15,7 @@ interface CustomGalleryProps {
   images: Array<{
     url: string;
     prompt?: string;
-    style?: string;
+    style?: string | null;
     id?: string;
     isFavorite?: boolean;
     description?: React.ReactNode;
@@ -117,7 +117,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     }
   };
 
-  const getStyleIcon = (style?: string) => {
+  const getStyleIcon = (style?: string | null) => {
     switch (style?.toLowerCase()) {
       case 'realistic':
       case 'photographic':
@@ -534,7 +534,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                           </span>
                           <span className="text-white/40">•</span>
                           <span className="text-sm text-white/60">
-                            {new Date(images[currentIndex].createdAt).toLocaleDateString()}
+                            {images[currentIndex].createdAt ? new Date(images[currentIndex].createdAt).toLocaleDateString() : ''}
                           </span>
                         </div>
                       </div>

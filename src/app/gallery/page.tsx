@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Download, Trash2, ImageIcon, Palette, Sparkles, Clapperboard, Maximize2, Filter, Wand2 } from 'lucide-react';
 import Image from 'next/image';
@@ -20,7 +20,7 @@ export default function GalleryPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  const filters: { value: FilterType; label: string; icon: JSX.Element; count: number }[] = [
+  const filters: { value: FilterType; label: string; icon: React.ReactElement; count: number }[] = [
     { 
       value: 'all', 
       label: 'All', 
@@ -75,15 +75,42 @@ export default function GalleryPage() {
     };
 
     loadImages();
-  }, []);
+  }, [setImages]);
 
-  const getStyleIcon = (style?: string) => {
+  const getStyleIcon = (style?: string | null) => {
     switch (style?.toLowerCase()) {
       case 'realistic': return <ImageIcon className="w-3 h-3" />;
       case 'digital': return <Palette className="w-3 h-3" />;
       case 'anime': return <Sparkles className="w-3 h-3" />;
       case 'cinematic': return <Clapperboard className="w-3 h-3" />;
       default: return <ImageIcon className="w-3 h-3" />;
+    }
+  };
+  
+  const downloadImage = async (url: string, prompt?: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const linkUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = linkUrl;
+      link.download = `image-${prompt ? prompt.substring(0, 20).replace(/\W+/g, '-') : 'generated'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(linkUrl);
+      
+      toast({
+        title: "Success",
+        description: "Image downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download image",
+        variant: "destructive",
+      });
     }
   };
 
@@ -249,12 +276,17 @@ export default function GalleryPage() {
                   </button>
                 </div>
               </div>
-            )
+            ),
+            createdAt: img.createdAt ? img.createdAt.toString() : undefined
           }))}
           isOpen={isGalleryOpen}
           onClose={() => setIsGalleryOpen(false)}
           startIndex={selectedImageIndex || 0}
           isFullscreen={isFullscreen}
+          onToggleFavorite={async (id) => {
+            toggleImageFavorite(id);
+            return Promise.resolve();
+          }}
         />
       )}
     </div>

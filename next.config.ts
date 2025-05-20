@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['image.pollinations.ai'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.pollinations.ai',
+      },
+    ],
+    minimumCacheTTL: 1800, // Cache images for 30 minutes
   },
   // Disable ESLint during production build
   eslint: {

@@ -31,12 +31,16 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleNavigation = (href: string, scroll?: boolean) => {
+    console.log('handleNavigation called:', { href, scroll, pathname });
     if (scroll) {
+      console.log('Scroll navigation');
       // If we're not on the home page, first navigate to home
       if (pathname !== '/') {
+        console.log('Not on home page, navigating to /');
         router.push('/');
         // Wait for navigation to complete before scrolling
         setTimeout(() => {
+          console.log('Attempting to scroll to #generate after timeout');
           const element = document.getElementById('generate');
           if (element) {
             const headerOffset = 100; // Adjust this value based on your header height + desired padding
@@ -47,9 +51,13 @@ export function Header() {
               top: offsetPosition,
               behavior: 'smooth'
             });
+            console.log('Scrolled to #generate');
+          } else {
+            console.log('#generate element not found');
           }
         }, 100);
       } else {
+        console.log('Already on home page, attempting to scroll to #generate');
         // If we're already on home page, just scroll
         const element = document.getElementById('generate');
         if (element) {
@@ -61,9 +69,13 @@ export function Header() {
             top: offsetPosition,
             behavior: 'smooth'
           });
+          console.log('Scrolled to #generate');
+        } else {
+          console.log('#generate element not found');
         }
       }
     } else {
+      console.log('Direct navigation to:', href);
       router.push(href);
     }
     setIsMenuOpen(false);

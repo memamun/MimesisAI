@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+  <rect width="100%" height="100%" fill="#1a1a2e" />
+  <path d="M160 100 L240 100 L200 180 Z" fill="#4a4e69" />
+  <circle cx="200" cy="70" r="20" fill="#4a4e69" />
+  <rect x="120" y="200" width="160" height="30" fill="#4a4e69" />
+  <text x="200" y="220" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="14">Image loading failed</text>
+</svg> 

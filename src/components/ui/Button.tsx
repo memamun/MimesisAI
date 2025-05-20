@@ -16,6 +16,18 @@ export function Button({
   size = 'md',
   isLoading = false,
   className = '',
+  onDrag,
+  onDragStart,
+  onDragEnd,
+  onDragEnter,
+  onDragExit,
+  onDragLeave,
+  onDragOver,
+  onDrop,
+  onAnimationStart,
+  onAnimationEnd,
+  onAnimationIteration,
+  onTransitionEnd,
   ...props
 }: ButtonProps) {
   const baseStyles = "inline-flex items-center justify-center font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";

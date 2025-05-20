@@ -5,7 +5,7 @@ interface Image {
   id: string;
   url: string;
   prompt: string;
-  style?: string;
+  style?: string | null;
   width: number;
   height: number;
   isFavorite: boolean;

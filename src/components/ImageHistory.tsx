@@ -91,7 +91,13 @@ export function ImageHistory() {
   const limitedImages = images.slice(0, 32);
   
   // Adjust the grouping to handle sets of 4 images
-  const imageSets = limitedImages.reduce((sets: HistoryImage[][], image, index) => {
+  const historyImages: HistoryImage[] = limitedImages.map(image => ({
+    ...image,
+    style: image.style ?? undefined, // Handle null style
+    updatedAt: image.createdAt // Use createdAt for updatedAt
+  }));
+
+  const imageSets = historyImages.reduce((sets: HistoryImage[][], image, index) => {
     const setIndex = Math.floor(index / 4); // Changed from 3 to 4 to match variations
     if (!sets[setIndex]) {
       sets[setIndex] = [];
@@ -251,6 +257,12 @@ function ImageSet({
     return 0;
   });
 
+  const galleryMappedImages = images.map(img => ({
+    ...img,
+    createdAt: img.createdAt.toISOString(),
+    updatedAt: img.updatedAt.toISOString(),
+  }));
+
   return (
     <>
       <motion.div 
@@ -349,7 +361,7 @@ function ImageSet({
       </motion.div>
 
       <CustomGallery
-        images={images}
+        images={galleryMappedImages}
         isOpen={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         startIndex={mainImageIndex}

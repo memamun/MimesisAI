@@ -14,7 +14,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useGeneratedImages } from '@/store/imageStore';
 import { getImages } from '@/app/actions/images';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/Input';
 import {
   Select,
   SelectContent,
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { generateImage } from '@/services/pollinations';
+import Image from 'next/image';
 
 const IMAGE_SIZES = [
   { width: 1280, height: 720, label: 'Landscape', icon: RectangleHorizontal },
@@ -59,24 +60,24 @@ const STYLE_VARIATIONS = [
   },
 ];
 
-interface GeneratedImage {
+interface LocalImage {
   url: string;
-  prompt: string;
-  label: string;
+  label?: string;
   style?: string;
-  originalPrompt: string;
-  id: string;
+  prompt?: string;
+  isLoading?: boolean;
+  error?: boolean;
 }
 
 // Create a custom event emitter for real-time updates
 const imageEventEmitter = {
-  listeners: new Set<(images: GeneratedImage[]) => void>(),
+  listeners: new Set<(images: LocalImage[]) => void>(),
   
-  emit(images: GeneratedImage[]) {
+  emit(images: LocalImage[]) {
     this.listeners.forEach(listener => listener(images));
   },
   
-  subscribe(listener: (images: GeneratedImage[]) => void) {
+  subscribe(listener: (images: LocalImage[]) => void) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
@@ -196,20 +197,28 @@ const enhancePrompt = async (prompt: string) => {
       .replace(/\s+/g, ' ')
       .trim();
     
-    const enhancementRequest = `Create a image generation prompt for ${cleanedPrompt}. Focus on visual details and artistic elements.`;
+    const enhancementRequest = `Enhance this image prompt with detailed visual descriptions, focusing only on appearance, lighting, style, and atmosphere. No introductions or questions: ${cleanedPrompt}`;
     
     const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(enhancementRequest)}`);
     if (!response.ok) throw new Error('Failed to enhance prompt');
     
     const enhancedText = await response.text();
     
+    // Clean up the response to remove all conversational elements
     const finalPrompt = enhancedText
       .replace(/```[\s\S]*?```/g, '')
       .replace(/\*\*/g, '')
       .replace(/\[.*?\]/g, '')
-      .replace(/Create a image generation prompt for/gi, '')
-      .replace(/Image prompt:/gi, '')
-      .replace(/Prompt:/gi, '')
+      .replace(/Certainly!|Here's|I'll|Let me|Would you like|Should I|Can I|Please|Note:|Remember:/gi, '')
+      .replace(/Here is|This is|I've created|I have created|I think|You might|You may|You could/gi, '')
+      .replace(/a detailed image generation prompt for|an image generation prompt for|a prompt for|an enhanced prompt for/gi, '')
+      .replace(/with a strong focus on|focusing on|emphasizing|highlighting/gi, '')
+      .replace(/visual and artistic elements:|visual elements:|artistic elements:/gi, '')
+      .replace(/[\n\r]+/g, ' ')  // Replace multiple newlines with single space
+      .replace(/\s{2,}/g, ' ')   // Replace multiple spaces with single space
+      .replace(/^[,\s]+/, '')    // Remove leading commas and spaces
+      .replace(/[,\s]+$/, '')    // Remove trailing commas and spaces
+      .replace(/\?|\!|\:/g, ',') // Replace question marks, exclamation points, and colons with commas
       .trim();
     
     return finalPrompt;
@@ -219,15 +228,118 @@ const enhancePrompt = async (prompt: string) => {
   }
 };
 
+const ImageCard = ({ 
+  image, 
+  index, 
+  selectedVariation,
+  onSelect,
+  onDownload 
+}: { 
+  image: LocalImage;
+  index: number;
+  selectedVariation: number | null;
+  onSelect: (index: number) => void;
+  onDownload: () => void;
+}) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [isImageError, setIsImageError] = useState(false);
+
+  return (
+    <motion.div
+      key={index}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.1 }}
+      className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
+        selectedVariation === index 
+          ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
+          : 'border-white/5 hover:border-white/20'
+      }`}
+      onClick={() => onSelect(index)}
+    >
+      {/* Loading State */}
+      {(!isImageLoaded || image.isLoading) && (
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/20 animate-pulse">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+          </div>
+        </div>
+      )}
+
+      {/* Image */}
+      {image.url && (
+        <div className={`relative w-full h-full transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <Image
+            src={image.url}
+            alt={image.label || ''}
+            fill
+            className="object-cover transition-transform group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={index === 0}
+            onLoad={() => setIsImageLoaded(true)}
+            onError={() => {
+              setIsImageError(true);
+              setIsImageLoaded(true);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Error State */}
+      {(isImageError || image.error) && (
+        <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
+          <div className="text-red-400 text-sm text-center px-4">
+            Failed to load image
+          </div>
+        </div>
+      )}
+
+      {/* Style Label */}
+      <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
+          {image.style === 'realistic' && <ImageIcon className="w-3 h-3" />}
+          {image.style === 'digital' && <Palette className="w-3 h-3" />}
+          {image.style === 'cinematic' && <Clapperboard className="w-3 h-3" />}
+          {image.style === 'anime' && <Sparkles className="w-3 h-3" />}
+          <span>{image.label}</span>
+        </div>
+        {selectedVariation === index && (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
+            <Check className="w-3 h-3" />
+            <span>Selected</span>
+          </div>
+        )}
+      </div>
+
+      {/* Hover Actions */}
+      {image.url && isImageLoaded && !isImageError && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload();
+              }}
+              className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download</span>
+            </motion.button>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 const ImageGenerator = () => {
   const { addImages, setImages } = useGeneratedImages();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [localImages, setLocalImages] = useState<Array<{
-    url: string;
-    label?: string;
-    style?: string;
-  }>>([]);
+  const [localImages, setLocalImages] = useState<Array<LocalImage>>([]);
   const [selectedSize, setSelectedSize] = useState(IMAGE_SIZES[0]);
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -251,7 +363,13 @@ const ImageGenerator = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  const downloadImage = async (imageUrl: string, basePrompt: string, label: string) => {
+  const handleSizeChange = (width: number, height: number) => {
+    setCustomSize({ width, height });
+    const icon = selectedSize.icon || Square; // Default to Square icon if none exists
+    setSelectedSize({ width, height, label: 'Custom', icon });
+  };
+
+  const downloadImage = async (imageUrl: string, basePrompt: string = '', label: string = 'generated') => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
@@ -327,55 +445,128 @@ const ImageGenerator = () => {
     setShowSaveButton(false);
     
     try {
-      const variations = [
-        {
-          prompt: `${inputPrompt}, ultra realistic 8k photography, professional lighting`,
-          label: 'Photographic',
-          style: 'realistic'
-        },
-        {
-          prompt: `${inputPrompt}, digital art, highly detailed, fantasy style`,
-          label: 'Digital Art',
-          style: 'digital'
-        },
-        {
-          prompt: `${inputPrompt}, cinematic lighting, movie scene, dramatic atmosphere, depth of field, 35mm film`,
-          label: 'Cinematic',
-          style: 'cinematic'
-        },
-        {
-          prompt: `${inputPrompt}, anime style, highly detailed, studio ghibli`,
-          label: 'Anime',
-          style: 'anime'
-        }
-      ];
+      const variations = STYLE_VARIATIONS.map(style => ({
+        prompt: `${inputPrompt}, ${style.prompt}`,
+        label: style.label,
+        style: style.id
+      }));
 
-      const generatedImages = [];
-      for (const variation of variations) {
+      // Initialize with empty placeholders
+      setLocalImages(variations.map(v => ({
+        url: '',
+        label: v.label,
+        style: v.style,
+        prompt: v.prompt,
+        isLoading: true
+      })));
+
+      // Add a small delay to ensure UI updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const results = await Promise.allSettled(
+        variations.map(async (variation): Promise<LocalImage> => {
         try {
           const seed = Math.floor(Math.random() * 1000000);
           const imageUrl = await generateImage(variation.prompt, {
             seed,
-            width: selectedSize.width,
-            height: selectedSize.height
+              width: isCustomSize ? customSize.width : selectedSize.width,
+              height: isCustomSize ? customSize.height : selectedSize.height,
+              timeout: 30000 // Increased timeout to 30 seconds
           });
           
-          generatedImages.push({
+            return {
             url: imageUrl,
             label: variation.label,
-            style: variation.style
-          });
+              style: variation.style,
+              prompt: variation.prompt,
+              isLoading: false
+            };
         } catch (error) {
           console.error(`Failed to generate ${variation.label} variation:`, error);
-          continue;
-        }
+            throw error;
+          }
+        })
+      );
+
+      // Process results and update state
+      const successfulImages = results
+        .map((result, index) => {
+          if (result.status === 'fulfilled') {
+            return result.value;
+          } else {
+            toast({
+              title: `${variations[index].label} Generation Failed`,
+              description: "Will retry automatically...",
+              variant: "destructive"
+            });
+            // Return a failed placeholder
+            return {
+              url: '',
+              label: variations[index].label,
+              style: variations[index].style,
+              prompt: variations[index].prompt,
+              isLoading: false,
+              error: true
+            };
+          }
+        })
+        .filter(img => img.url || img.error); // Keep both successful and error states
+
+      setLocalImages(successfulImages);
+      
+      // Retry failed generations
+      const failedVariations = results
+        .map((result, index) => result.status === 'rejected' ? variations[index] : null)
+        .filter((v): v is typeof variations[0] => v !== null);
+
+      if (failedVariations.length > 0) {
+        // Retry after a short delay
+        setTimeout(async () => {
+          const retryResults = await Promise.allSettled(
+            failedVariations.map(async (variation) => {
+              try {
+                const seed = Math.floor(Math.random() * 1000000);
+                const imageUrl = await generateImage(variation.prompt, {
+                  seed,
+                  width: isCustomSize ? customSize.width : selectedSize.width,
+                  height: isCustomSize ? customSize.height : selectedSize.height,
+                  timeout: 30000
+                });
+
+                // Update the specific failed image
+                setLocalImages(prev => 
+                  prev.map(img => 
+                    img.style === variation.style ? {
+                      url: imageUrl,
+                      label: variation.label,
+                      style: variation.style,
+                      prompt: variation.prompt,
+                      isLoading: false
+                    } : img
+                  )
+                );
+
+                return imageUrl;
+              } catch (error) {
+                console.error(`Retry failed for ${variation.label}:`, error);
+                throw error;
+              }
+            })
+          );
+
+          const anySuccess = retryResults.some(result => result.status === 'fulfilled');
+          if (anySuccess) {
+      setShowSaveButton(true);
+          }
+        }, 2000); // Wait 2 seconds before retrying
+      } else {
+        setShowSaveButton(true);
       }
 
-      setLocalImages(generatedImages);
-      setShowSaveButton(true);
     } catch (error) {
+      console.error('Generation error:', error);
       toast({
-        title: "Error",
+        title: "Generation Failed",
         description: "Failed to generate images. Please try again.",
         variant: "destructive"
       });
@@ -440,7 +631,8 @@ const ImageGenerator = () => {
   const SizeControl = () => {
     const handleSizeChange = (width: number, height: number) => {
       setCustomSize({ width, height });
-      setSelectedSize({ width, height, label: selectedSize.label });
+      const icon = selectedSize.icon || Square; // Default to Square icon if none exists
+      setSelectedSize({ width, height, label: 'Custom', icon });
     };
 
     return (
@@ -512,15 +704,15 @@ const ImageGenerator = () => {
   // Format images for CustomGallery with proper prompt handling
   const galleryImages = localImages.map((img, index) => ({
     id: String(index),
-    url: img.url || '',
-    prompt: prompt || '',
+    url: img.url,
+    prompt: img.prompt || prompt || '',
     width: selectedSize.width,
     height: selectedSize.height,
     style: img.label || 'Generated',
     isFavorite: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    description: `${prompt || ''} • ${img.label || 'Generated'} • ${selectedSize.width}×${selectedSize.height}`,
+    description: `${img.prompt || prompt || ''} • ${img.label || 'Generated'} • ${selectedSize.width}×${selectedSize.height}`,
     label: img.label || 'Generated'
   }));
 
@@ -669,8 +861,8 @@ const ImageGenerator = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {loading ? (
-              // Loading placeholders
+            {loading && !localImages.length ? (
+              // Initial loading placeholders
               Array.from({ length: 4 }).map((_, index) => (
                 <motion.div
                   key={`loading-${index}`}
@@ -689,59 +881,18 @@ const ImageGenerator = () => {
               ))
             ) : (
               localImages.map((image, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
-                    selectedVariation === index 
-                      ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
-                      : 'border-white/5 hover:border-white/20'
-                  }`}
-                  onClick={() => {
-                    setSelectedVariation(index);
-                    setSelectedImageIndex(index);
+                <ImageCard
+                  key={`${image.url}-${index}`}
+                  image={image}
+                  index={index}
+                  selectedVariation={selectedVariation}
+                  onSelect={(idx) => {
+                    setSelectedVariation(idx);
+                    setSelectedImageIndex(idx);
                     setIsGalleryOpen(true);
                   }}
-                >
-                  <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-black/50 backdrop-blur-sm text-white border border-white/10">
-                      {image.style === 'realistic' && <ImageIcon className="w-3 h-3" />}
-                      {image.style === 'digital' && <Palette className="w-3 h-3" />}
-                      {image.style === 'cinematic' && <Clapperboard className="w-3 h-3" />}
-                      {image.style === 'anime' && <Sparkles className="w-3 h-3" />}
-                      <span>{image.label}</span>
-                    </div>
-                    {selectedVariation === index && (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-purple-500/50 backdrop-blur-sm text-white border border-purple-300/20">
-                        <Check className="w-3 h-3" />
-                        <span>Selected</span>
-                      </div>
-                    )}
-                  </div>
-                  <img
-                    src={image.url}
-                    alt={image.label}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          downloadImage(image.url, prompt, image.label);
-                        }}
-                        className="w-full px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm flex items-center justify-center space-x-2 hover:bg-white/20"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Download</span>
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
+                  onDownload={() => downloadImage(image.url, prompt, image.label)}
+                />
               ))
             )}
           </div>

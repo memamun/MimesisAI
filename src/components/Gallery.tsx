@@ -32,7 +32,11 @@ export function Gallery() {
       setImages(dbImages);
     } catch (error) {
       console.error('Error loading images:', error);
-      toast.error('Failed to load gallery images');
+      toast({
+        title: "Error",
+        description: "Failed to load gallery images",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -46,10 +50,17 @@ export function Gallery() {
     try {
       await toggleFavorite(id);
       await loadImages(); // Reload images after toggling favorite
-      toast.success('Updated favorite status');
+      toast({
+        title: "Success",
+        description: "Updated favorite status",
+      });
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      toast.error('Failed to update favorite status');
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -57,10 +68,17 @@ export function Gallery() {
     try {
       await deleteImage(id);
       await loadImages(); // Reload images after deletion
-      toast.success('Image deleted successfully');
+      toast({
+        title: "Success",
+        description: "Image deleted successfully",
+      });
     } catch (error) {
       console.error('Error deleting image:', error);
-      toast.error('Failed to delete image');
+      toast({
+        title: "Error",
+        description: "Failed to delete image",
+        variant: "destructive",
+      });
     }
   };
 

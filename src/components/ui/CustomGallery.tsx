@@ -176,9 +176,9 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
   };
 
   // Get optimal dimensions
-  const { width: optimalWidth, height: optimalHeight } = calculateImageDimensions();
+  const { width: _optimalWidth, height: _optimalHeight } = calculateImageDimensions();
 
-  const handleDownload = async (image: any) => {
+  const handleDownload = async (image: CustomGalleryProps['images'][number]) => {
     try {
       const response = await fetch(image.url);
       const blob = await response.blob();
@@ -314,7 +314,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSlideshow]);
+  }, [isSlideshow, stopSlideshow]);
 
   // Enhanced slideshow transition
   const startSlideshow = () => {
@@ -710,7 +710,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     sizes="100vw"
                     quality={100}
                     draggable={false}
-                    onLoadingComplete={(img) => {
+                    onLoadingComplete={(_img) => {
                       if (isSlideshow) {
                         animateImage();
                       }

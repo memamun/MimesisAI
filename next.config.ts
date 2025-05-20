@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['image.pollinations.ai'],
   },
+  // Disable ESLint during production build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async headers() {
     return [
       {

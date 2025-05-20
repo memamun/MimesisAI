@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { 
   X, ChevronLeft, ChevronRight, Download, Star, 
@@ -38,9 +38,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [isSlideshow, setIsSlideshow] = useState(false);
@@ -65,7 +63,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     return () => clearTimeout(timeout);
   }, [showDescription]);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
     } else if (e.key === 'ArrowRight') {
@@ -73,7 +71,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     } else if (e.key === 'Escape') {
       onClose();
     }
-  };
+  }, [images.length, onClose]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
@@ -174,9 +172,6 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
     return { width, height };
   };
-
-  // Get optimal dimensions
-  const { width: _optimalWidth, height: _optimalHeight } = calculateImageDimensions();
 
   const handleDownload = async (image: CustomGalleryProps['images'][number]) => {
     try {
@@ -304,6 +299,20 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     animate();
   };
 
+  const stopSlideshow = useCallback(() => {
+    setIsSlideshow(false);
+    if (slideshowInterval) {
+      clearInterval(slideshowInterval);
+      setSlideshowInterval(null);
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+    // Smooth reset of effects
+    setPanPosition({ x: 0, y: 0 });
+    setZoomLevel(1);
+  }, [slideshowInterval]);
+
   // Enhanced keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -362,20 +371,6 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     setSlideshowInterval(interval);
     setZoomLevel(1.2);
     setTimeout(animateImage, 50);
-  };
-
-  const stopSlideshow = () => {
-    setIsSlideshow(false);
-    if (slideshowInterval) {
-      clearInterval(slideshowInterval);
-      setSlideshowInterval(null);
-    }
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-    // Smooth reset of effects
-    setPanPosition({ x: 0, y: 0 });
-    setZoomLevel(1);
   };
 
   // Cleanup on unmount
@@ -710,7 +705,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     sizes="100vw"
                     quality={100}
                     draggable={false}
-                    onLoadingComplete={(_img) => {
+                    onLoadingComplete={() => {
                       if (isSlideshow) {
                         animateImage();
                       }

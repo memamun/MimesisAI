@@ -46,6 +46,8 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [zoomLevel, setZoomLevel] = useState(1);
   const [direction, setDirection] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const easeInOutCubic = (t: number): number => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -393,6 +395,34 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     setCurrentIndex(prev => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isSlideshow) return;
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(null);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isSlideshow || touchStartX === null) return;
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (isSlideshow || touchStartX === null || touchEndX === null) return;
+
+    const deltaX = touchEndX - touchStartX;
+    const swipeThreshold = 50;
+
+    if (Math.abs(deltaX) > swipeThreshold) {
+      if (deltaX < 0) {
+        handleNext();
+      } else {
+        handlePrevious();
+      }
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -423,7 +453,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       {currentIndex + 1} / {images.length}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
                     <button
                       onClick={startSlideshow}
                       className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -600,7 +630,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     </div>
 
                     {/* Actions Column */}
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
                       {onToggleFavorite && (
                         <button
                           onClick={(e) => {
@@ -661,6 +691,9 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
           <motion.div
             className="relative w-full h-full cursor-auto"
             onClick={isSlideshow ? stopSlideshow : undefined}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             <AnimatePresence initial={false} custom={direction}>
               <motion.div

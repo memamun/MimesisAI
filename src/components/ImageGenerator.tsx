@@ -6,7 +6,7 @@ import {
   Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
   Square, RectangleVertical, RectangleHorizontal, Settings2, X, RefreshCw,
   Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle, Clapperboard,
-  Trash2, Star
+  Trash2, Star, ChevronDown
 } from 'lucide-react';
 import { saveGeneratedImage } from '@/app/actions/images';
 import { CustomGallery } from './ui/CustomGallery';
@@ -629,6 +629,8 @@ const ImageGenerator = () => {
   };
 
   const SizeControl = () => {
+    const [isPresetListOpen, setIsPresetListOpen] = useState(false);
+
     const handleSizeChange = (width: number, height: number) => {
       setCustomSize({ width, height });
       const icon = selectedSize.icon || Square; // Default to Square icon if none exists
@@ -640,7 +642,14 @@ const ImageGenerator = () => {
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-400">Image Size</span>
           <button
-            onClick={() => setIsCustomSize(!isCustomSize)}
+            onClick={() => {
+              setIsCustomSize(!isCustomSize);
+              if (!isCustomSize) { // Switching to Custom Size
+                setIsPresetListOpen(false);
+              } else { // Switching to Use Presets
+                setIsPresetListOpen(true);
+              }
+            }}
             className="text-xs text-purple-400 hover:text-purple-300"
           >
             {isCustomSize ? 'Use Presets' : 'Custom Size'}
@@ -654,49 +663,88 @@ const ImageGenerator = () => {
             initialHeight={selectedSize.height}
           />
         ) : (
-          <div className="grid grid-cols-1 gap-1">
-            {IMAGE_SIZES.map((size) => {
-              const Icon = size.icon;
-              const isSelected = selectedSize.width === size.width && selectedSize.height === size.height;
-              const isHD = size.width >= 1080 || size.height >= 1080;
-              
-              return (
-                <button
-                  key={size.label}
-                  onClick={() => {
-                    setSelectedSize(size);
-                    setCustomSize({ width: size.width, height: size.height });
-                  }}
-                  className={`p-2 rounded-lg flex items-center justify-between transition-colors ${
-                    isSelected
-                      ? 'bg-purple-600/20 text-purple-400'
-                      : 'text-gray-400 hover:bg-gray-800/50'
-                  }`}
+          <>
+            {/* Current Size Indicator - Now a button */}
+            <button
+              onClick={() => {
+                if (!isCustomSize) {
+                  setIsPresetListOpen(!isPresetListOpen);
+                }
+              }}
+              className="w-full pt-1.5 border-t border-white/5 mt-2" // Added mt-2 for spacing when presets are hidden
+            >
+              <div className="text-xs text-gray-400 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span>Current Size:</span>
+                  <span className="text-purple-400">
+                    {selectedSize.width}px × {selectedSize.height}px
+                  </span>
+                </div>
+                <motion.div
+                  animate={{ rotate: isPresetListOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    <span className="text-xs">{size.label}</span>
-                    {isHD && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-500/20 text-purple-400 rounded-full">
-                        HD
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </motion.div>
+              </div>
+            </button>
+
+            {/* Collapsible Preset List */}
+            {isPresetListOpen && !isCustomSize && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-1 gap-1 overflow-hidden"
+              >
+                {IMAGE_SIZES.map((size) => {
+                  const Icon = size.icon;
+                  const isSelected = selectedSize.width === size.width && selectedSize.height === size.height;
+                  const isHD = size.width >= 1080 || size.height >= 1080;
+                  
+                  return (
+                    <button
+                      key={size.label}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        setCustomSize({ width: size.width, height: size.height });
+                        setIsPresetListOpen(false); // Close list after selection
+                      }}
+                      className={`p-2 rounded-lg flex items-center justify-between transition-colors ${
+                        isSelected
+                          ? 'bg-purple-600/20 text-purple-400'
+                          : 'text-gray-400 hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs">{size.label}</span>
+                        {isHD && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-purple-500/20 text-purple-400 rounded-full">
+                            HD
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </>
         )}
         
-        {/* Current Size Indicator */}
-        <div className="pt-1.5 border-t border-white/5">
-          <div className="text-xs text-gray-400 flex items-center justify-between">
-            <span>Current Size:</span>
-            <span className="text-purple-400">
-              {selectedSize.width}px × {selectedSize.height}px
-            </span>
+        {/* Current Size Indicator - For Custom Size Mode */}
+        {isCustomSize && (
+           <div className="pt-1.5 border-t border-white/5">
+            <div className="text-xs text-gray-400 flex items-center justify-between">
+              <span>Current Size:</span>
+              <span className="text-purple-400">
+                {customSize.width}px × {customSize.height}px
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -725,10 +773,10 @@ const ImageGenerator = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-3 border-b border-white/5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-purple-400" />
-                  <span className="text-sm font-medium text-gray-300">AI Image Generator</span>
+                  <span className="text-base sm:text-sm font-medium text-gray-300">AI Image Generator</span>
                   <span id="generator-anchor" className="sr-only">Generator Section</span>
                 </div>
-                <div className="flex flex-col items-start gap-1 mt-2 sm:mt-0 sm:flex-row sm:items-center sm:gap-4 text-xs text-gray-400">
+                <div className="flex flex-col items-start gap-1 mt-2 sm:mt-0 sm:flex-row sm:items-center sm:gap-4 text-sm sm:text-xs text-gray-400">
                   <div className="flex items-center gap-1">
                     <Palette className="w-4 h-4" />
                     <span>4 Styles</span>
@@ -745,7 +793,7 @@ const ImageGenerator = () => {
               </div>
               
               <div className="p-4">
-                <div className="flex space-x-1 mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
+                <div className="flex space-x-1 mb-3 sm:mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
                   <button
                     onClick={() => setPromptMode('enhanced')}
                     className={`px-3 py-1 text-sm rounded-md transition-colors ${
@@ -781,7 +829,7 @@ const ImageGenerator = () => {
                     }}
                     placeholder="Describe what you want to see in the image. Be specific and detailed. Avoid using special characters or markdown."
                     rows={4}
-                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                   />
                   <button
                     onClick={handleEnhanceClick}
@@ -800,7 +848,7 @@ const ImageGenerator = () => {
                     />
                   </button>
                   {promptMode === 'enhanced' && (
-                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                    <div className="mt-3 sm:mt-2 flex items-center gap-2 text-xs text-gray-400">
                       <AlertCircle className="w-4 h-4" />
                       <span>Click the sparkle icon to enhance your prompt with AI</span>
                     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -138,13 +139,13 @@ export function Header() {
                 <button
                   key={item.href}
                   onClick={() => handleNavigation(item.href, item.scroll)}
-                  className={`flex items-center gap-2 px-6 py-3 text-sm w-full text-left ${
+                  className={`flex items-center gap-2 px-6 py-4 text-base w-full text-left ${
                     pathname === item.href
                       ? 'text-white bg-gradient-to-r from-purple-500/20 to-blue-500/20'
                       : 'text-gray-300 hover:bg-gray-800/50'
                   }`}
                 >
-                  {item.icon}
+                  {React.cloneElement(item.icon, { size: 20 })}
                   {item.name}
                 </button>
               ))}

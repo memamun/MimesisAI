@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
-import { 
-  X, ChevronLeft, ChevronRight, Download, Star, 
-  Maximize2, Minimize2, Share2, ZoomIn, ZoomOut, 
+import {
+  X, ChevronLeft, ChevronRight, Download, Star,
+  Maximize2, Minimize2, Share2, ZoomIn, ZoomOut,
   Copy, Check, RotateCw, ChevronDown, ChevronUp,
   ImageIcon, Palette, Sparkles, Clapperboard, Play, Square
 } from 'lucide-react';
 import Image from 'next/image';
-import { toast } from '@/components/ui/use-toast';
 
 interface CustomGalleryProps {
   images: Array<{
@@ -104,10 +103,6 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
     if (prompt) {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);
-      toast({
-        title: "Copied",
-        description: "Prompt copied to clipboard",
-      });
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -187,17 +182,8 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast({
-        title: "Success",
-        description: "Image downloaded successfully",
-      });
     } catch (error) {
       console.error('Error downloading image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to download image",
-        variant: "destructive",
-      });
     }
   };
 
@@ -207,19 +193,8 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
     try {
       await onToggleFavorite(currentImage.id);
-      toast({
-        title: currentImage.isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: currentImage.isFavorite 
-          ? "Image removed from your favorites" 
-          : "Image added to your favorites",
-      });
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorite status",
-        variant: "destructive",
-      });
     }
   };
 
@@ -264,10 +239,10 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
     const animate = () => {
       if (!isSlideshow) return;
-      
+
       const progress = (currentStep % steps) / steps;
       const eased = easeInOutCubic(progress);
-      
+
       // Interpolate between keyframes
       const currentZoom = currentKeyframes.zoom + (nextKeyframes.zoom - currentKeyframes.zoom) * eased;
       const currentX = currentKeyframes.x + (nextKeyframes.x - currentKeyframes.x) * eased;
@@ -353,7 +328,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
           const progress = step / steps;
           const eased = easeInOutCubic(progress);
-          
+
           setZoomLevel(startZoom + (1.3 - startZoom) * eased);
           setPanPosition({
             x: startX * (1 - eased),
@@ -369,7 +344,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
 
       transitionOut();
     }, 5000);
-    
+
     setSlideshowInterval(interval);
     setZoomLevel(1.2);
     setTimeout(animateImage, 50);
@@ -453,7 +428,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       {currentIndex + 1} / {images.length}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="hidden sm:flex items-center gap-3">
                     <button
                       onClick={startSlideshow}
                       className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -483,6 +458,32 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
                     >
                       <RotateCw className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={toggleFullscreen}
+                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    >
+                      {isFullscreenMode ? (
+                        <Minimize2 className="w-5 h-5 text-white" />
+                      ) : (
+                        <Maximize2 className="w-5 h-5 text-white" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="sm:hidden flex items-center gap-2">
+                    <button
+                      onClick={() => handleZoom(-0.1)}
+                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                      disabled={scale <= 0.5}
+                    >
+                      <ZoomOut className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={() => handleZoom(0.1)}
+                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                      disabled={scale >= 3}
+                    >
+                      <ZoomIn className="w-5 h-5 text-white" />
                     </button>
                     <button
                       onClick={toggleFullscreen}
@@ -570,9 +571,9 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       </div>
 
                       {/* Prompt Section with Animation */}
-                      <motion.div 
+                      <motion.div
                         initial={false}
-                        animate={{ 
+                        animate={{
                           height: showPrompt ? 'auto' : '0',
                           opacity: showPrompt ? 1 : 0,
                           marginBottom: showPrompt ? '1rem' : '0'
@@ -585,7 +586,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                             <h3 className="text-sm font-medium text-white/80">Prompt</h3>
                             <button
                               onClick={handleCopyPrompt}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
                             >
                               {copied ? (
                                 <>
@@ -610,11 +611,10 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       <div className="flex items-center gap-3">
                         <button
                           onClick={() => setShowPrompt(!showPrompt)}
-                          className={`group inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                            showPrompt 
-                              ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-white border border-purple-500/20'
-                              : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/5'
-                          }`}
+                          className={`group inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${showPrompt
+                            ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-white border border-purple-500/20'
+                            : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/5'
+                            }`}
                         >
                           <span className="text-sm font-medium">
                             {showPrompt ? 'Hide Description' : 'See Description'}
@@ -630,43 +630,44 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     </div>
 
                     {/* Actions Column */}
-                    <div className="flex flex-wrap items-center gap-3">
-                      {onToggleFavorite && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleFavorite();
-                          }}
-                          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
-                          title={images[currentIndex]?.isFavorite ? "Remove from favorites" : "Add to favorites"}
-                        >
-                          <Star 
-                            className={`w-5 h-5 transition-colors ${
-                              images[currentIndex]?.isFavorite 
-                                ? 'fill-yellow-400 text-yellow-400' 
+                    <div className="flex flex-wrap sm:flex-row gap-3">
+                      <div className="grid grid-cols-2 sm:flex items-center gap-3">
+                        {onToggleFavorite && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavorite();
+                            }}
+                            className="p-3 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
+                            title={images[currentIndex]?.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star
+                              className={`w-6 h-6 sm:w-5 sm:h-5 transition-colors ${images[currentIndex]?.isFavorite
+                                ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-white/70 group-hover:text-white'
-                            }`} 
-                          />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDownload(images[currentIndex])}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
-                        title="Download image"
-                      >
-                        <Download className="w-5 h-5 text-white/70 group-hover:text-white" />
-                      </button>
-                      <button
-                        onClick={handleCopyPrompt}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
-                        title="Copy prompt"
-                      >
-                        {copied ? (
-                          <Check className="w-5 h-5 text-green-400" />
-                        ) : (
-                          <Copy className="w-5 h-5 text-white/70 group-hover:text-white" />
+                                }`}
+                            />
+                          </button>
                         )}
-                      </button>
+                        <button
+                          onClick={() => handleDownload(images[currentIndex])}
+                          className="p-3 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
+                          title="Download image"
+                        >
+                          <Download className="w-6 h-6 sm:w-5 sm:h-5 text-white/70 group-hover:text-white" />
+                        </button>
+                        <button
+                          onClick={handleCopyPrompt}
+                          className="hidden sm:block p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors group"
+                          title="Copy prompt"
+                        >
+                          {copied ? (
+                            <Check className="w-5 h-5 text-green-400" />
+                          ) : (
+                            <Copy className="w-5 h-5 text-white/70 group-hover:text-white" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -717,7 +718,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     y: isSlideshow ? panPosition.y : 0,
                     rotate: isSlideshow ? rotation : 0
                   }}
-                  transition={{ 
+                  transition={{
                     duration: isSlideshow ? 2.5 : 0.5,
                     ease: "easeInOut"
                   }}
@@ -727,9 +728,8 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     src={images[currentIndex].url}
                     alt={images[currentIndex].prompt || "Image"}
                     fill
-                    className={`transition-all duration-1000 ease-in-out cursor-auto ${
-                      isSlideshow ? 'object-cover' : 'object-contain'
-                    }`}
+                    className={`transition-all duration-1000 ease-in-out cursor-auto ${isSlideshow ? 'object-cover' : 'object-contain'
+                      }`}
                     style={{
                       objectPosition: isSlideshow ? 'center center' : undefined,
                       cursor: 'auto'

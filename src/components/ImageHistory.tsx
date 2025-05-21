@@ -10,7 +10,6 @@ import {
 import { Button } from './ui/Button';
 import { ImagePopup } from './ui/ImagePopup';
 import { getImages, toggleFavorite, deleteImage } from '@/app/actions/images';
-import { toast } from '@/components/ui/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useGeneratedImages } from '@/store/imageStore';
@@ -39,17 +38,8 @@ export function ImageHistory() {
       setRefreshing(true);
       const dbImages = await getImages();
       setImages(dbImages);
-      toast({
-        title: "Refreshed",
-        description: "Image history has been updated",
-      });
     } catch (error) {
       console.error('Error loading images:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load images",
-        variant: "destructive",
-      });
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -66,11 +56,7 @@ export function ImageHistory() {
       await toggleFavorite(id);
       toggleImageFavorite(id);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update favorite status",
-        variant: "destructive",
-      });
+      console.error('Failed to update favorite status:', error);
     }
   };
 
@@ -89,22 +75,13 @@ export function ImageHistory() {
 
         // Remove all images in the set from the local state
         imageSet.forEach(img => removeImage(img.id));
-
-        toast({
-          title: "Success",
-          description: "Image set deleted successfully",
-        });
       } else {
         // Fallback to deleting just the single image
         await deleteImage(id);
         removeImage(id);
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete image",
-        variant: "destructive",
-      });
+      console.error('Failed to delete image:', error);
     }
   };
 

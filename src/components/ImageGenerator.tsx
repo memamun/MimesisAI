@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
+import {
+  Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check,
   Square, RectangleVertical, RectangleHorizontal, Settings2, X, RefreshCw,
   Eraser, Palette, Layers, Zap, Monitor, Smartphone, AlertCircle, Clapperboard,
   Trash2, Star, ChevronDown
@@ -34,29 +34,29 @@ const IMAGE_SIZES = [
 ];
 
 const STYLE_VARIATIONS = [
-  { 
-    id: 'realistic', 
-    label: 'Photographic', 
-    icon: '📷', 
-    prompt: 'ultra realistic 8k photography, professional lighting, RAW photo, highly detailed' 
+  {
+    id: 'realistic',
+    label: 'Photographic',
+    icon: '📷',
+    prompt: 'ultra realistic 8k photography, professional lighting, RAW photo, highly detailed'
   },
-  { 
-    id: 'digital', 
-    label: 'Digital Art', 
-    icon: '🎨', 
-    prompt: 'digital painting, highly detailed, fantasy concept art, trending on artstation, octane render, unreal engine 5' 
+  {
+    id: 'digital',
+    label: 'Digital Art',
+    icon: '🎨',
+    prompt: 'digital painting, highly detailed, fantasy concept art, trending on artstation, octane render, unreal engine 5'
   },
-  { 
-    id: 'cinematic', 
-    label: 'Cinematic', 
-    icon: '🎬', 
-    prompt: 'cinematic lighting, movie scene, dramatic atmosphere, depth of field, 35mm film' 
+  {
+    id: 'cinematic',
+    label: 'Cinematic',
+    icon: '🎬',
+    prompt: 'cinematic lighting, movie scene, dramatic atmosphere, depth of field, 35mm film'
   },
-  { 
-    id: 'anime', 
-    label: 'Anime', 
-    icon: '🎯', 
-    prompt: 'anime style, high quality anime art, studio ghibli, detailed anime illustration, vibrant anime colors, anime key visual' 
+  {
+    id: 'anime',
+    label: 'Anime',
+    icon: '🎯',
+    prompt: 'anime style, high quality anime art, studio ghibli, detailed anime illustration, vibrant anime colors, anime key visual'
   },
 ];
 
@@ -72,11 +72,11 @@ interface LocalImage {
 // Create a custom event emitter for real-time updates
 const imageEventEmitter = {
   listeners: new Set<(images: LocalImage[]) => void>(),
-  
+
   emit(images: LocalImage[]) {
     this.listeners.forEach(listener => listener(images));
   },
-  
+
   subscribe(listener: (images: LocalImage[]) => void) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -85,11 +85,11 @@ const imageEventEmitter = {
 
 export { imageEventEmitter };
 
-const ImageSizeInput = ({ 
+const ImageSizeInput = ({
   onSizeChange,
   initialWidth,
-  initialHeight 
-}: { 
+  initialHeight
+}: {
   onSizeChange: (width: number, height: number) => void;
   initialWidth: number;
   initialHeight: number;
@@ -111,7 +111,7 @@ const ImageSizeInput = ({
   const handleWidthBlur = () => {
     const error = validateSize(width, true);
     setWidthError(error);
-    
+
     if (!error && height && !heightError) {
       onSizeChange(parseInt(width), parseInt(height));
     }
@@ -120,7 +120,7 @@ const ImageSizeInput = ({
   const handleHeightBlur = () => {
     const error = validateSize(height, false);
     setHeightError(error);
-    
+
     if (!error && width && !widthError) {
       onSizeChange(parseInt(width), parseInt(height));
     }
@@ -138,9 +138,8 @@ const ImageSizeInput = ({
           }}
           onBlur={handleWidthBlur}
           placeholder="Width"
-          className={`w-full px-3 py-1.5 bg-gray-900/50 border rounded text-sm text-white pr-12 focus:outline-none focus:ring-1 focus:ring-purple-500/30 ${
-            widthError ? 'border-red-500/50' : 'border-white/5'
-          }`}
+          className={`w-full px-3 py-1.5 bg-gray-900/50 border rounded text-sm text-white pr-12 focus:outline-none focus:ring-1 focus:ring-purple-500/30 ${widthError ? 'border-red-500/50' : 'border-white/5'
+            }`}
         />
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">px</span>
         {widthError && (
@@ -162,9 +161,8 @@ const ImageSizeInput = ({
           }}
           onBlur={handleHeightBlur}
           placeholder="Height"
-          className={`w-full px-3 py-1.5 bg-gray-900/50 border rounded text-sm text-white pr-12 focus:outline-none focus:ring-1 focus:ring-purple-500/30 ${
-            heightError ? 'border-red-500/50' : 'border-white/5'
-          }`}
+          className={`w-full px-3 py-1.5 bg-gray-900/50 border rounded text-sm text-white pr-12 focus:outline-none focus:ring-1 focus:ring-purple-500/30 ${heightError ? 'border-red-500/50' : 'border-white/5'
+            }`}
         />
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">px</span>
         {heightError && (
@@ -196,14 +194,14 @@ const enhancePrompt = async (prompt: string) => {
       .replace(/[^\w\s,.-]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
-    
+
     const enhancementRequest = `Enhance this image prompt with detailed visual descriptions, focusing only on appearance, lighting, style, and atmosphere. No introductions or questions: ${cleanedPrompt}`;
-    
+
     const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(enhancementRequest)}`);
     if (!response.ok) throw new Error('Failed to enhance prompt');
-    
+
     const enhancedText = await response.text();
-    
+
     // Clean up the response to remove all conversational elements
     const finalPrompt = enhancedText
       .replace(/```[\s\S]*?```/g, '')
@@ -220,7 +218,7 @@ const enhancePrompt = async (prompt: string) => {
       .replace(/[,\s]+$/, '')    // Remove trailing commas and spaces
       .replace(/\?|\!|\:/g, ',') // Replace question marks, exclamation points, and colons with commas
       .trim();
-    
+
     return finalPrompt;
   } catch (error) {
     console.error('Error enhancing prompt:', error);
@@ -228,13 +226,13 @@ const enhancePrompt = async (prompt: string) => {
   }
 };
 
-const ImageCard = ({ 
-  image, 
-  index, 
+const ImageCard = ({
+  image,
+  index,
   selectedVariation,
   onSelect,
-  onDownload 
-}: { 
+  onDownload
+}: {
   image: LocalImage;
   index: number;
   selectedVariation: number | null;
@@ -250,11 +248,10 @@ const ImageCard = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.1 }}
-      className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${
-        selectedVariation === index 
-          ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105' 
+      className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${selectedVariation === index
+          ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105'
           : 'border-white/5 hover:border-white/20'
-      }`}
+        }`}
       onClick={() => onSelect(index)}
     >
       {/* Loading State */}
@@ -375,16 +372,16 @@ const ImageGenerator = () => {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      
+
       // Create a clean filename using the prompt and style label
       const cleanPrompt = basePrompt
         .slice(0, 30) // Limit prompt length
         .replace(/[^a-z0-9]/gi, '_') // Replace special chars with underscore
         .toLowerCase();
-      
+
       const cleanLabel = label.toLowerCase().replace(/\s+/g, '_');
       const timestamp = new Date().getTime();
-      
+
       // Format: prompt_style_timestamp.png
       link.href = url;
       link.download = `${cleanPrompt}_${cleanLabel}_${timestamp}.png`;
@@ -409,7 +406,7 @@ const ImageGenerator = () => {
 
   const handleEnhanceClick = async () => {
     if (!prompt.trim() || isEnhancing) return;
-    
+
     setIsEnhancing(true);
     try {
       toast({
@@ -439,11 +436,11 @@ const ImageGenerator = () => {
 
   const handleGenerate = async (inputPrompt: string) => {
     if (!inputPrompt.trim() || loading) return;
-    
+
     setLoading(true);
     setLocalImages([]);
     setShowSaveButton(false);
-    
+
     try {
       const variations = STYLE_VARIATIONS.map(style => ({
         prompt: `${inputPrompt}, ${style.prompt}`,
@@ -465,24 +462,24 @@ const ImageGenerator = () => {
 
       const results = await Promise.allSettled(
         variations.map(async (variation): Promise<LocalImage> => {
-        try {
-          const seed = Math.floor(Math.random() * 1000000);
-          const imageUrl = await generateImage(variation.prompt, {
-            seed,
+          try {
+            const seed = Math.floor(Math.random() * 1000000);
+            const imageUrl = await generateImage(variation.prompt, {
+              seed,
               width: isCustomSize ? customSize.width : selectedSize.width,
               height: isCustomSize ? customSize.height : selectedSize.height,
               timeout: 30000 // Increased timeout to 30 seconds
-          });
-          
+            });
+
             return {
-            url: imageUrl,
-            label: variation.label,
+              url: imageUrl,
+              label: variation.label,
               style: variation.style,
               prompt: variation.prompt,
               isLoading: false
             };
-        } catch (error) {
-          console.error(`Failed to generate ${variation.label} variation:`, error);
+          } catch (error) {
+            console.error(`Failed to generate ${variation.label} variation:`, error);
             throw error;
           }
         })
@@ -513,7 +510,7 @@ const ImageGenerator = () => {
         .filter(img => img.url || img.error); // Keep both successful and error states
 
       setLocalImages(successfulImages);
-      
+
       // Retry failed generations
       const failedVariations = results
         .map((result, index) => result.status === 'rejected' ? variations[index] : null)
@@ -534,8 +531,8 @@ const ImageGenerator = () => {
                 });
 
                 // Update the specific failed image
-                setLocalImages(prev => 
-                  prev.map(img => 
+                setLocalImages(prev =>
+                  prev.map(img =>
                     img.style === variation.style ? {
                       url: imageUrl,
                       label: variation.label,
@@ -556,7 +553,7 @@ const ImageGenerator = () => {
 
           const anySuccess = retryResults.some(result => result.status === 'fulfilled');
           if (anySuccess) {
-      setShowSaveButton(true);
+            setShowSaveButton(true);
           }
         }, 2000); // Wait 2 seconds before retrying
       } else {
@@ -588,12 +585,12 @@ const ImageGenerator = () => {
         });
         if (savedImage) savedImages.push(savedImage);
       }
-      
+
       addImages(savedImages);
       const latestImages = await getImages();
       setImages(latestImages);
       setShowSaveButton(false);
-      
+
       toast({
         title: "Saved",
         description: "Images saved to history",
@@ -609,7 +606,7 @@ const ImageGenerator = () => {
 
   const generatePromptVariations = async (basePrompt: string) => {
     const cleanedPrompt = cleanInputPrompt(basePrompt);
-    
+
     return Promise.all(
       STYLE_VARIATIONS.map(async (style) => ({
         prompt: `${cleanedPrompt}, ${style.prompt}`,
@@ -655,9 +652,9 @@ const ImageGenerator = () => {
             {isCustomSize ? 'Use Presets' : 'Custom Size'}
           </button>
         </div>
-        
+
         {isCustomSize ? (
-          <ImageSizeInput 
+          <ImageSizeInput
             onSizeChange={handleSizeChange}
             initialWidth={selectedSize.width}
             initialHeight={selectedSize.height}
@@ -691,7 +688,7 @@ const ImageGenerator = () => {
 
             {/* Collapsible Preset List */}
             {isPresetListOpen && !isCustomSize && (
-              <motion.div 
+              <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -702,7 +699,7 @@ const ImageGenerator = () => {
                   const Icon = size.icon;
                   const isSelected = selectedSize.width === size.width && selectedSize.height === size.height;
                   const isHD = size.width >= 1080 || size.height >= 1080;
-                  
+
                   return (
                     <button
                       key={size.label}
@@ -711,11 +708,10 @@ const ImageGenerator = () => {
                         setCustomSize({ width: size.width, height: size.height });
                         setIsPresetListOpen(false); // Close list after selection
                       }}
-                      className={`p-2 rounded-lg flex items-center justify-between transition-colors ${
-                        isSelected
+                      className={`p-2 rounded-lg flex items-center justify-between transition-colors ${isSelected
                           ? 'bg-purple-600/20 text-purple-400'
                           : 'text-gray-400 hover:bg-gray-800/50'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2">
                         <Icon className="w-4 h-4" />
@@ -733,10 +729,10 @@ const ImageGenerator = () => {
             )}
           </>
         )}
-        
+
         {/* Current Size Indicator - For Custom Size Mode */}
         {isCustomSize && (
-           <div className="pt-1.5 border-t border-white/5">
+          <div className="pt-1.5 border-t border-white/5">
             <div className="text-xs text-gray-400 flex items-center justify-between">
               <span>Current Size:</span>
               <span className="text-purple-400">
@@ -791,26 +787,24 @@ const ImageGenerator = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <div className="flex space-x-1 mb-3 sm:mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
                   <button
                     onClick={() => setPromptMode('enhanced')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                      promptMode === 'enhanced'
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${promptMode === 'enhanced'
                         ? 'bg-purple-600/20 text-purple-400'
                         : 'text-gray-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     Enhanced
                   </button>
                   <button
                     onClick={() => setPromptMode('direct')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                      promptMode === 'direct'
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${promptMode === 'direct'
                         ? 'bg-purple-600/20 text-purple-400'
                         : 'text-gray-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     Direct
                   </button>
@@ -834,17 +828,16 @@ const ImageGenerator = () => {
                   <button
                     onClick={handleEnhanceClick}
                     disabled={!prompt.trim() || isEnhancing}
-                    className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${
-                      isEnhancing 
-                        ? 'bg-purple-500/20 text-purple-400' 
-                        : prompt.trim() 
-                          ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400' 
+                    className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${isEnhancing
+                        ? 'bg-purple-500/20 text-purple-400'
+                        : prompt.trim()
+                          ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400'
                           : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
-                    }`}
+                      }`}
                     title="Enhance prompt with AI"
                   >
-                    <Sparkles 
-                      className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} 
+                    <Sparkles
+                      className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`}
                     />
                   </button>
                   {promptMode === 'enhanced' && (
@@ -872,11 +865,10 @@ const ImageGenerator = () => {
                   <button
                     onClick={() => handleGenerate(prompt)}
                     disabled={loading || !prompt.trim()}
-                    className={`w-full sm:w-auto px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                      loading || !prompt.trim()
+                    className={`w-full sm:w-auto px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${loading || !prompt.trim()
                         ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
                         : 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30'
-                    }`}
+                      }`}
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

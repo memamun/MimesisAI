@@ -423,7 +423,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       {currentIndex + 1} / {images.length}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={startSlideshow}
                       className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -520,7 +520,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                 className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/90 to-transparent"
               >
                 <div className="max-w-screen-xl mx-auto p-6">
-                  <div className="flex items-start justify-between gap-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
                       {/* Style and Metadata Row */}
                       <div className="flex items-center gap-3 flex-wrap mb-4">
@@ -600,7 +600,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     </div>
 
                     {/* Actions Column */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {onToggleFavorite && (
                         <button
                           onClick={(e) => {

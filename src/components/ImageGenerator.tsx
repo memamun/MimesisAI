@@ -720,15 +720,15 @@ const ImageGenerator = () => {
     <section id="generate" className="relative py-8 scroll-mt-32 scroll-smooth">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
+          <div className="flex-1 order-last lg:order-first">
             <div className="bg-gray-900/50 rounded-xl border border-white/5">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-3 border-b border-white/5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-purple-400" />
                   <span className="text-sm font-medium text-gray-300">AI Image Generator</span>
                   <span id="generator-anchor" className="sr-only">Generator Section</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
+                <div className="flex flex-col items-start gap-1 mt-2 sm:mt-0 sm:flex-row sm:items-center sm:gap-4 text-xs text-gray-400">
                   <div className="flex items-center gap-1">
                     <Palette className="w-4 h-4" />
                     <span>4 Styles</span>
@@ -808,23 +808,23 @@ const ImageGenerator = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-4 py-3 border-t border-white/5 bg-black/20">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 py-3 border-t border-white/5 bg-black/20 gap-3">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <ImageIcon className="w-4 h-4" />
                     <span>4 Variations</span>
                   </div>
-                  <div className="h-4 w-px bg-gray-700" />
+                  <div className="h-4 w-px bg-gray-700 hidden sm:block" />
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <Settings2 className="w-4 h-4" />
                     <span>Custom Size</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => handleGenerate(prompt)}
                     disabled={loading || !prompt.trim()}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+                    className={`w-full sm:w-auto px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
                       loading || !prompt.trim()
                         ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
                         : 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30'
@@ -835,14 +835,14 @@ const ImageGenerator = () => {
                     ) : (
                       <Wand2 className="w-4 h-4" />
                     )}
-                    <span>{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
+                    <span className="text-xs sm:text-sm">{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="w-full lg:w-48">
+          <div className="w-full lg:w-48 order-first lg:order-last">
             <SizeControl />
           </div>
         </div>

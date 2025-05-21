@@ -64,7 +64,7 @@ export function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-blue-500/5 to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] pointer-events-none" />
 
-      <div className="container mx-auto px-4 pt-32 pb-24 relative z-10">
+      <div className="container mx-auto px-4 pt-20 pb-16 sm:pt-32 sm:pb-24 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,11 +81,11 @@ export function Hero() {
             Next-Generation AI Image Creation
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
             Bring Your Imagination to Life
           </h1>
 
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
             MimesisAI transforms your ideas into stunning visuals using advanced artificial intelligence. Create unique, professional-quality images in seconds.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-20">

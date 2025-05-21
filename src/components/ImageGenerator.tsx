@@ -793,8 +793,8 @@ const ImageGenerator = () => {
                   <button
                     onClick={() => setPromptMode('enhanced')}
                     className={`px-3 py-1 text-base sm:text-sm rounded-md transition-colors ${promptMode === 'enhanced'
-                        ? 'bg-purple-600/20 text-purple-400'
-                        : 'text-gray-500 hover:text-gray-300'
+                      ? 'bg-purple-600/20 text-purple-400'
+                      : 'text-gray-500 hover:text-gray-300'
                       }`}
                   >
                     Enhanced
@@ -802,8 +802,8 @@ const ImageGenerator = () => {
                   <button
                     onClick={() => setPromptMode('direct')}
                     className={`px-3 py-1 text-base sm:text-sm rounded-md transition-colors ${promptMode === 'direct'
-                        ? 'bg-purple-600/20 text-purple-400'
-                        : 'text-gray-500 hover:text-gray-300'
+                      ? 'bg-purple-600/20 text-purple-400'
+                      : 'text-gray-500 hover:text-gray-300'
                       }`}
                   >
                     Direct
@@ -829,10 +829,10 @@ const ImageGenerator = () => {
                     onClick={handleEnhanceClick}
                     disabled={!prompt.trim() || isEnhancing}
                     className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${isEnhancing
-                        ? 'bg-purple-500/20 text-purple-400'
-                        : prompt.trim()
-                          ? 'bg-transparent text-gray-500 hover:text-purple-400 hover:bg-purple-500/10'
-                          : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
+                      ? 'bg-purple-500/20 text-purple-400'
+                      : prompt.trim()
+                        ? 'bg-transparent text-gray-500 hover:text-purple-400 hover:bg-purple-500/10'
+                        : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
                       }`}
                     title="Enhance prompt with AI"
                   >

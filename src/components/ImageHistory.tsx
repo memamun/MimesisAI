@@ -298,10 +298,10 @@ function ImageSet({
             // Delete the first image which will trigger the set deletion
             onDelete(images[0].id);
           }}
-          className="absolute top-3 right-3 z-10 p-1 bg-black/50 hover:bg-red-600/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-3 right-3 z-10 p-2 bg-black/50 hover:bg-red-600/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
           title="Delete entire set"
         >
-          <Trash2 className="w-4 h-4 text-white" />
+          <Trash2 className="w-5 h-5 text-white" />
         </button>
 
         {/* Main Image Container */}

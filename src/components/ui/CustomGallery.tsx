@@ -453,7 +453,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                       {currentIndex + 1} / {images.length}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="grid grid-cols-3 gap-2 items-center sm:flex sm:flex-wrap sm:justify-end sm:gap-3">
                     <button
                       onClick={startSlideshow}
                       className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -468,7 +468,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     >
                       <ZoomOut className="w-5 h-5 text-white" />
                     </button>
-                    <span className="text-white/70 text-sm w-16 text-center">
+                    <span className="text-white/70 text-sm w-full sm:w-16 text-center">
                       {Math.round(scale * 100)}%
                     </span>
                     <button
@@ -630,7 +630,7 @@ export function CustomGallery({ images, isOpen, onClose, startIndex = 0, isFulls
                     </div>
 
                     {/* Actions Column */}
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="grid grid-cols-3 gap-2 w-full">
                       {onToggleFavorite && (
                         <button
                           onClick={(e) => {

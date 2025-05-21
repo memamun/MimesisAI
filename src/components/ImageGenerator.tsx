@@ -249,8 +249,8 @@ const ImageCard = ({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.1 }}
       className={`group relative aspect-square rounded-2xl overflow-hidden backdrop-blur-sm border-2 transition-all duration-300 ${selectedVariation === index
-          ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105'
-          : 'border-white/5 hover:border-white/20'
+        ? 'border-purple-500 ring-2 ring-purple-500/50 scale-105'
+        : 'border-white/5 hover:border-white/20'
         }`}
       onClick={() => onSelect(index)}
     >
@@ -709,8 +709,8 @@ const ImageGenerator = () => {
                         setIsPresetListOpen(false); // Close list after selection
                       }}
                       className={`p-2 rounded-lg flex items-center justify-between transition-colors ${isSelected
-                          ? 'bg-purple-600/20 text-purple-400'
-                          : 'text-gray-400 hover:bg-gray-800/50'
+                        ? 'bg-purple-600/20 text-purple-400'
+                        : 'text-gray-400 hover:bg-gray-800/50'
                         }`}
                     >
                       <div className="flex items-center gap-2">
@@ -762,7 +762,7 @@ const ImageGenerator = () => {
 
   return (
     <section id="generate" className="relative py-8 scroll-mt-32 scroll-smooth">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3 sm:px-4">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 order-last lg:order-first">
             <div className="bg-gray-900/50 rounded-xl border border-white/5">
@@ -789,21 +789,21 @@ const ImageGenerator = () => {
               </div>
 
               <div className="p-4">
-                <div className="flex space-x-1 mb-3 sm:mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
+                <div className="flex space-x-2 mb-3 sm:mb-2 bg-gray-900/30 p-0.5 rounded-lg w-fit">
                   <button
                     onClick={() => setPromptMode('enhanced')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${promptMode === 'enhanced'
+                    className={`px-3 py-1 text-base sm:text-sm rounded-md transition-colors ${promptMode === 'enhanced'
                         ? 'bg-purple-600/20 text-purple-400'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-gray-500 hover:text-gray-300'
                       }`}
                   >
                     Enhanced
                   </button>
                   <button
                     onClick={() => setPromptMode('direct')}
-                    className={`px-3 py-1 text-sm rounded-md transition-colors ${promptMode === 'direct'
+                    className={`px-3 py-1 text-base sm:text-sm rounded-md transition-colors ${promptMode === 'direct'
                         ? 'bg-purple-600/20 text-purple-400'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-gray-500 hover:text-gray-300'
                       }`}
                   >
                     Direct
@@ -823,7 +823,7 @@ const ImageGenerator = () => {
                     }}
                     placeholder="Describe what you want to see in the image. Be specific and detailed. Avoid using special characters or markdown."
                     rows={4}
-                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 placeholder-opacity-60 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-white/5 rounded-xl text-white placeholder-gray-400 placeholder-opacity-40 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
                   />
                   <button
                     onClick={handleEnhanceClick}
@@ -831,7 +831,7 @@ const ImageGenerator = () => {
                     className={`absolute right-3 top-3 p-2 rounded-lg transition-all ${isEnhancing
                         ? 'bg-purple-500/20 text-purple-400'
                         : prompt.trim()
-                          ? 'bg-gray-800/50 text-gray-400 hover:bg-purple-500/20 hover:text-purple-400'
+                          ? 'bg-transparent text-gray-500 hover:text-purple-400 hover:bg-purple-500/10'
                           : 'bg-gray-800/20 text-gray-600 cursor-not-allowed'
                       }`}
                     title="Enhance prompt with AI"
@@ -841,7 +841,7 @@ const ImageGenerator = () => {
                     />
                   </button>
                   {promptMode === 'enhanced' && (
-                    <div className="mt-3 sm:mt-2 flex items-center gap-2 text-xs text-gray-400">
+                    <div className="mt-3 sm:mt-2 flex items-center gap-2 text-sm sm:text-xs text-gray-400">
                       <AlertCircle className="w-4 h-4" />
                       <span>Click the sparkle icon to enhance your prompt with AI</span>
                     </div>
@@ -851,12 +851,12 @@ const ImageGenerator = () => {
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-4 py-3 border-t border-white/5 bg-black/20 gap-3">
                 <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-sm sm:text-xs text-gray-400">
                     <ImageIcon className="w-4 h-4" />
                     <span>4 Variations</span>
                   </div>
                   <div className="h-4 w-px bg-gray-700 hidden sm:block" />
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-sm sm:text-xs text-gray-400">
                     <Settings2 className="w-4 h-4" />
                     <span>Custom Size</span>
                   </div>
@@ -866,8 +866,8 @@ const ImageGenerator = () => {
                     onClick={() => handleGenerate(prompt)}
                     disabled={loading || !prompt.trim()}
                     className={`w-full sm:w-auto px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${loading || !prompt.trim()
-                        ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600/20 to-blue-600/20 text-purple-400 hover:from-purple-600/30 hover:to-blue-600/30'
+                      ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 sm:from-purple-600/20 sm:to-blue-600/20 sm:text-purple-400 sm:hover:from-purple-600/30 sm:hover:to-blue-600/30'
                       }`}
                   >
                     {loading ? (
@@ -875,7 +875,7 @@ const ImageGenerator = () => {
                     ) : (
                       <Wand2 className="w-4 h-4" />
                     )}
-                    <span className="text-xs sm:text-sm">{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
+                    <span className="text-sm">{loading ? 'Generating...' : `Generate ${promptMode === 'enhanced' ? 'Variations' : 'Image'}`}</span>
                   </button>
                 </div>
               </div>

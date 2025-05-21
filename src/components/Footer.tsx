@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export function Footer() {
   return (
     <footer className="border-t border-white/5 bg-gradient-to-b from-transparent to-black/50">
@@ -8,10 +10,10 @@ export function Footer() {
               Product
             </h3>
             <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Features</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">API Access</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Pricing</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Documentation</li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/">Features</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/product/api-access">API Access</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/product/pricing">Pricing</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/product/documentation">Documentation</Link></li>
             </ul>
           </div>
           <div>
@@ -19,10 +21,10 @@ export function Footer() {
               Company
             </h3>
             <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">About</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Blog</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Careers</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Contact</li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/about">About</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/blog">Blog</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/careers">Careers</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/contact">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -30,10 +32,10 @@ export function Footer() {
               Legal
             </h3>
             <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Privacy</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Terms</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Security</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Licenses</li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/legal/privacy">Privacy</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/legal/terms">Terms</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/legal/security">Security</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/legal/licenses">Licenses</Link></li>
             </ul>
           </div>
           <div>
@@ -41,10 +43,10 @@ export function Footer() {
               Community
             </h3>
             <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Discord</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">Twitter</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">GitHub</li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer">YouTube</li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/discord">Discord</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/twitter">Twitter</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/github">GitHub</Link></li>
+              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/youtube">YouTube</Link></li>
             </ul>
           </div>
         </div>

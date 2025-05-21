@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Menu, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const NAVIGATION = [
   { 
@@ -30,56 +30,51 @@ export function Header() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleNavigation = (href: string, scroll?: boolean) => {
+  const scrollToElement = useCallback((elementId: string, headerOffset: number = 100) => {
+    setTimeout(() => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        const elementPosition = element.getBoundingClientRect().top;
+        const scrollY = window.scrollY || window.pageYOffset;
+        const offsetPosition = elementPosition + scrollY - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+        console.log(`Scrolled to #${elementId}, position:`, offsetPosition);
+      } else {
+        console.log(`#${elementId} element not found`);
+      }
+    }, 150); // Increased timeout for more reliability
+  }, []);
+
+  const handleNavigation = useCallback((href: string, scroll?: boolean) => {
     console.log('handleNavigation called:', { href, scroll, pathname });
+    
     if (scroll) {
       console.log('Scroll navigation');
+      const elementId = href.split('#')[1];
+      
       // If we're not on the home page, first navigate to home
       if (pathname !== '/') {
         console.log('Not on home page, navigating to /');
         router.push('/');
         // Wait for navigation to complete before scrolling
         setTimeout(() => {
-          console.log('Attempting to scroll to #generate after timeout');
-          const element = document.getElementById('generate');
-          if (element) {
-            const headerOffset = 100; // Adjust this value based on your header height + desired padding
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
-            console.log('Scrolled to #generate');
-          } else {
-            console.log('#generate element not found');
-          }
-        }, 100);
+          scrollToElement(elementId);
+        }, 300); // Give more time for the page to load
       } else {
-        console.log('Already on home page, attempting to scroll to #generate');
-        // If we're already on home page, just scroll
-        const element = document.getElementById('generate');
-        if (element) {
-          const headerOffset = 100; // Adjust this value based on your header height + desired padding
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-          console.log('Scrolled to #generate');
-        } else {
-          console.log('#generate element not found');
-        }
+        console.log('Already on home page, attempting to scroll');
+        scrollToElement(elementId);
       }
     } else {
       console.log('Direct navigation to:', href);
       router.push(href);
     }
+    
     setIsMenuOpen(false);
-  };
+  }, [pathname, router, scrollToElement]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">

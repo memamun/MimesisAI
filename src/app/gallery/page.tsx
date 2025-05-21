@@ -9,6 +9,7 @@ import { getImages, toggleFavorite, deleteImage } from '@/app/actions/images';
 import { toast } from '@/components/ui/use-toast';
 import { CustomGallery } from '@/components/ui/CustomGallery';
 import { useGeneratedImages } from '@/store/imageStore';
+import { useRouter } from 'next/navigation';
 
 type FilterType = 'all' | 'realistic' | 'digital' | 'anime' | 'cinematic';
 
@@ -19,41 +20,42 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const router = useRouter();
 
   const filters: { value: FilterType; label: string; icon: React.ReactElement; count: number }[] = [
-    { 
-      value: 'all', 
-      label: 'All', 
+    {
+      value: 'all',
+      label: 'All',
       icon: <Filter className="w-4 h-4" />,
       count: images.length
     },
-    { 
-      value: 'realistic', 
-      label: 'Photographic', 
+    {
+      value: 'realistic',
+      label: 'Photographic',
       icon: <ImageIcon className="w-4 h-4" />,
       count: images.filter(img => img.style?.toLowerCase() === 'realistic').length
     },
-    { 
-      value: 'digital', 
-      label: 'Digital Art', 
+    {
+      value: 'digital',
+      label: 'Digital Art',
       icon: <Palette className="w-4 h-4" />,
       count: images.filter(img => img.style?.toLowerCase() === 'digital').length
     },
-    { 
-      value: 'anime', 
-      label: 'Anime', 
+    {
+      value: 'anime',
+      label: 'Anime',
       icon: <Sparkles className="w-4 h-4" />,
       count: images.filter(img => img.style?.toLowerCase() === 'anime').length
     },
-    { 
-      value: 'cinematic', 
-      label: 'Cinematic', 
+    {
+      value: 'cinematic',
+      label: 'Cinematic',
       icon: <Clapperboard className="w-4 h-4" />,
       count: images.filter(img => img.style?.toLowerCase() === 'cinematic').length
     },
   ];
 
-  const filteredImages = images.filter(img => 
+  const filteredImages = images.filter(img =>
     activeFilter === 'all' || img.style?.toLowerCase() === activeFilter
   );
 
@@ -86,7 +88,7 @@ export default function GalleryPage() {
       default: return <ImageIcon className="w-3 h-3" />;
     }
   };
-  
+
   const downloadImage = async (url: string, prompt?: string) => {
     try {
       const response = await fetch(url);
@@ -99,7 +101,7 @@ export default function GalleryPage() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(linkUrl);
-      
+
       toast({
         title: "Success",
         description: "Image downloaded successfully",
@@ -129,6 +131,38 @@ export default function GalleryPage() {
     }
   };
 
+  // Function to handle direct scrolling to generator section
+  const handleScrollToGenerate = () => {
+    // Store a flag in sessionStorage to indicate we should scroll after navigation
+    sessionStorage.setItem('scrollToGenerate', 'true');
+    // Navigate to home page using router
+    router.push('/');
+  };
+
+  // Add effect to check for the scroll flag when component mounts
+  useEffect(() => {
+    const shouldScroll = sessionStorage.getItem('scrollToGenerate');
+    if (shouldScroll === 'true') {
+      // Clear the flag
+      sessionStorage.removeItem('scrollToGenerate');
+
+      // Wait for page to be fully loaded
+      setTimeout(() => {
+        const generateSection = document.getElementById('generate');
+        if (generateSection) {
+          const headerOffset = 100;
+          const elementPosition = generateSection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -154,15 +188,17 @@ export default function GalleryPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link 
-              href="/#generate"
+            <motion.button
+              onClick={handleScrollToGenerate}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r 
                 from-purple-600/20 to-blue-600/20 text-purple-400 
                 hover:from-purple-600/30 hover:to-blue-600/30 transition-colors"
             >
               <Wand2 className="w-4 h-4" />
               <span>AI Generate</span>
-            </Link>
+            </motion.button>
             <div className="text-sm text-white/60">
               {filteredImages.length} {filteredImages.length === 1 ? 'image' : 'images'}
             </div>
@@ -175,27 +211,24 @@ export default function GalleryPage() {
               <motion.button
                 key={filter.value}
                 onClick={() => setActiveFilter(filter.value)}
-                className={`group inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  activeFilter === filter.value
-                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/20'
-                    : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/5'
-                }`}
+                className={`group inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${activeFilter === filter.value
+                  ? 'bg-purple-600/20 text-purple-300 border border-purple-500/20'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/5'
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className={`transition-colors duration-200 ${
-                  activeFilter === filter.value 
-                    ? 'text-purple-300' 
-                    : 'text-white/70 group-hover:text-white'
-                }`}>
+                <span className={`transition-colors duration-200 ${activeFilter === filter.value
+                  ? 'text-purple-300'
+                  : 'text-white/70 group-hover:text-white'
+                  }`}>
                   {filter.icon}
                 </span>
                 <span className="font-medium">{filter.label}</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs ${
-                  activeFilter === filter.value
-                    ? 'bg-purple-500/20 text-purple-300'
-                    : 'bg-white/10 text-white/60'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${activeFilter === filter.value
+                  ? 'bg-purple-500/20 text-purple-300'
+                  : 'bg-white/10 text-white/60'
+                  }`}>
                   {filter.count}
                 </span>
               </motion.button>
@@ -203,7 +236,7 @@ export default function GalleryPage() {
           </AnimatePresence>
         </div>
       </div>
-      
+
       <AnimatePresence mode="wait">
         <motion.div
           key={activeFilter}

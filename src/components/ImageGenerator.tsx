@@ -717,7 +717,7 @@ const ImageGenerator = () => {
   }));
 
   return (
-    <div id="generate" className="relative py-8">
+    <section id="generate" className="relative py-8 scroll-mt-32 scroll-smooth">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
@@ -726,6 +726,7 @@ const ImageGenerator = () => {
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-purple-400" />
                   <span className="text-sm font-medium text-gray-300">AI Image Generator</span>
+                  <span id="generator-anchor" className="sr-only">Generator Section</span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-gray-400">
                   <div className="flex items-center gap-1">
@@ -931,7 +932,7 @@ const ImageGenerator = () => {
           />
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

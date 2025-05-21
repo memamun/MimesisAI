@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check, 
+import {
+  Wand2, Loader2, Download, ImageIcon, Sparkles, Copy, Check,
   Square, RectangleVertical, RectangleHorizontal, Settings2, X,
   Palette, Layers, Zap, Monitor, Smartphone, Clapperboard, Star, RefreshCw, Trash2, Clock
 } from 'lucide-react';
@@ -76,8 +76,29 @@ export function ImageHistory() {
 
   const handleDeleteImage = async (id: string) => {
     try {
-      await deleteImage(id);
-      removeImage(id);
+      // Find the set that contains this image
+      const setIndex = imageSets.findIndex(set =>
+        set.some(img => img.id === id)
+      );
+
+      if (setIndex !== -1) {
+        const imageSet = imageSets[setIndex];
+
+        // Delete all images in the set from the database
+        await Promise.all(imageSet.map(img => deleteImage(img.id)));
+
+        // Remove all images in the set from the local state
+        imageSet.forEach(img => removeImage(img.id));
+
+        toast({
+          title: "Success",
+          description: "Image set deleted successfully",
+        });
+      } else {
+        // Fallback to deleting just the single image
+        await deleteImage(id);
+        removeImage(id);
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -89,7 +110,7 @@ export function ImageHistory() {
 
   // Limit to last 32 images
   const limitedImages = images.slice(0, 32);
-  
+
   // Adjust the grouping to handle sets of 4 images
   const historyImages: HistoryImage[] = limitedImages.map(image => ({
     ...image,
@@ -106,7 +127,7 @@ export function ImageHistory() {
     return sets;
   }, []);
 
-  const filteredSets = imageSets.filter(set => 
+  const filteredSets = imageSets.filter(set =>
     filter === 'all' || set.some(img => img.isFavorite)
   );
 
@@ -126,15 +147,14 @@ export function ImageHistory() {
           <button
             onClick={loadImages}
             disabled={refreshing}
-            className={`p-2 rounded-full hover:bg-white/10 transition-colors ${
-              refreshing ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            className={`p-2 rounded-full hover:bg-white/10 transition-colors ${refreshing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
           >
             <RefreshCw className={`w-5 h-5 text-white ${refreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
         <div className="flex items-center gap-4">
-          <Link 
+          <Link
             href="/gallery"
             className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
           >
@@ -144,8 +164,8 @@ export function ImageHistory() {
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors
-                ${filter === 'all' 
-                  ? 'bg-white/10 text-white' 
+                ${filter === 'all'
+                  ? 'bg-white/10 text-white'
                   : 'text-white/70 hover:text-white hover:bg-white/5'}`}
             >
               All
@@ -153,8 +173,8 @@ export function ImageHistory() {
             <button
               onClick={() => setFilter('favorites')}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors
-                ${filter === 'favorites' 
-                  ? 'bg-white/10 text-white' 
+                ${filter === 'favorites'
+                  ? 'bg-white/10 text-white'
                   : 'text-white/70 hover:text-white hover:bg-white/5'}`}
             >
               Favorites
@@ -165,8 +185,8 @@ export function ImageHistory() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredSets.map((imageSet, index) => (
-          <ImageSet 
-            key={imageSet[0].id} 
+          <ImageSet
+            key={imageSet[0].id}
             images={imageSet}
             onToggleFavorite={handleToggleFavorite}
             onDelete={handleDeleteImage}
@@ -177,26 +197,26 @@ export function ImageHistory() {
   );
 }
 
-function ImageSet({ 
-  images, 
-  onToggleFavorite, 
-  onDelete 
-}: { 
+function ImageSet({
+  images,
+  onToggleFavorite,
+  onDelete
+}: {
   images: HistoryImage[];
   onToggleFavorite: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
   // Find the index of the photographic style image
-  const defaultIndex = images.findIndex(img => 
-    img.style?.toLowerCase() === 'realistic' || 
+  const defaultIndex = images.findIndex(img =>
+    img.style?.toLowerCase() === 'realistic' ||
     img.style?.toLowerCase() === 'photographic'
   );
-  
+
   // Use photographic index if found, otherwise use 0
   const [mainImageIndex, setMainImageIndex] = useState(defaultIndex !== -1 ? defaultIndex : 0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const mainImage = images[mainImageIndex];
-  
+
   const getStyleIcon = (style: string) => {
     switch (style) {
       case 'realistic':
@@ -265,14 +285,27 @@ function ImageSet({
 
   return (
     <>
-      <motion.div 
+      <motion.div
         className="relative w-[280px] bg-gradient-to-b from-black/30 to-black/10 rounded-xl p-4 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 group"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.02 }}
       >
+        {/* Delete Set Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            // Delete the first image which will trigger the set deletion
+            onDelete(images[0].id);
+          }}
+          className="absolute top-3 right-3 z-10 p-2 bg-black/50 hover:bg-red-600/70 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+          title="Delete entire set"
+        >
+          <Trash2 className="w-4 h-4 text-white" />
+        </button>
+
         {/* Main Image Container */}
-        <div 
+        <div
           className="relative w-full aspect-square rounded-lg overflow-hidden mb-3 cursor-pointer"
           onClick={() => setIsGalleryOpen(true)}
         >
@@ -283,7 +316,7 @@ function ImageSet({
             className="object-cover transform transition-transform duration-300 group-hover:scale-105"
             sizes="280px"
           />
-          
+
           {/* Overlay and Controls */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -306,15 +339,6 @@ function ImageSet({
                   >
                     <Download className="w-5 h-5 text-white group-hover/download:scale-110 transition-transform" />
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(mainImage.id);
-                    }}
-                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5 text-white" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -336,11 +360,10 @@ function ImageSet({
               <motion.button
                 key={image.id}
                 onClick={() => setMainImageIndex(images.findIndex(img => img.id === image.id))}
-                className={`relative aspect-square w-full rounded-md overflow-hidden ${
-                  images[mainImageIndex].id === image.id
-                    ? 'ring-2 ring-purple-500 ring-offset-1 ring-offset-black/50' 
-                    : 'hover:ring-2 hover:ring-white/50 hover:ring-offset-1 hover:ring-offset-black/50'
-                }`}
+                className={`relative aspect-square w-full rounded-md overflow-hidden ${images[mainImageIndex].id === image.id
+                  ? 'ring-2 ring-purple-500 ring-offset-1 ring-offset-black/50'
+                  : 'hover:ring-2 hover:ring-white/50 hover:ring-offset-1 hover:ring-offset-black/50'
+                  }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -351,9 +374,8 @@ function ImageSet({
                   className="object-cover"
                   sizes="60px"
                 />
-                <div className={`absolute inset-0 transition-opacity duration-200 ${
-                  images[mainImageIndex].id === image.id ? 'bg-purple-500/10' : 'hover:bg-white/10'
-                }`} />
+                <div className={`absolute inset-0 transition-opacity duration-200 ${images[mainImageIndex].id === image.id ? 'bg-purple-500/10' : 'hover:bg-white/10'
+                  }`} />
               </motion.button>
             ))}
           </div>

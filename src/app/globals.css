@@ -14,8 +14,25 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Adjust scroll padding for fixed header */
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 80px;
+  }
+}
+
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: 60px;
+  }
 }

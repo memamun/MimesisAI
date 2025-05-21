@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Images for MimesisAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #6d28d9;
+        }
+
+        .image-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .image-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #6d28d9;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #5b21b6;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Download Images for MimesisAI</h1>
+
+    <div class="instructions">
+        <h2>Instructions</h2>
+        <ol>
+            <li>For each image below, right-click and choose "Save Image As..."</li>
+            <li>Save the image to your <code>public/images</code> folder with the suggested filename</li>
+            <li>All images are free to use and from Pexels/Unsplash</li>
+        </ol>
+    </div>
+
+    <div class="image-container">
+        <div class="image-item">
+            <h3>Team Photo (team-photo.jpg)</h3>
+            <img src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg" alt="Team Photo">
+            <p>Right-click and save as: <code>public/images/team-photo.jpg</code></p>
+            <a href="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg" download="team-photo.jpg">
+                <button>Download</button>
+            </a>
+        </div>
+
+        <div class="image-item">
+            <h3>Collaboration (collaboration.jpg)</h3>
+            <img src="https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg" alt="Team Collaboration">
+            <p>Right-click and save as: <code>public/images/collaboration.jpg</code></p>
+            <a href="https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg" download="collaboration.jpg">
+                <button>Download</button>
+            </a>
+        </div>
+
+        <div class="image-item">
+            <h3>Office (office.jpg)</h3>
+            <img src="https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg" alt="Office Space">
+            <p>Right-click and save as: <code>public/images/office.jpg</code></p>
+            <a href="https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg" download="office.jpg">
+                <button>Download</button>
+            </a>
+        </div>
+
+        <div class="image-item">
+            <h3>Meeting (meeting.jpg)</h3>
+            <img src="https://images.pexels.com/photos/7988079/pexels-photo-7988079.jpeg" alt="Team Meeting">
+            <p>Right-click and save as: <code>public/images/meeting.jpg</code></p>
+            <a href="https://images.pexels.com/photos/7988079/pexels-photo-7988079.jpeg" download="meeting.jpg">
+                <button>Download</button>
+            </a>
+        </div>
+
+        <div class="image-item">
+            <h3>Team Event (team-event.jpg)</h3>
+            <img src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg" alt="Team Event">
+            <p>Right-click and save as: <code>public/images/team-event.jpg</code></p>
+            <a href="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg" download="team-event.jpg">
+                <button>Download</button>
+            </a>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h2>After Downloading</h2>
+        <p>After downloading all images to the correct location, refresh your Careers page to see the images working
+            properly.</p>
+    </div>
+</body>
+
+</html>

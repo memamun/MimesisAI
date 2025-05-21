@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MessageSquare, Twitter, Github, Youtube } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -43,10 +44,50 @@ export function Footer() {
               Community
             </h3>
             <ul className="space-y-3 text-gray-400">
-              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/discord">Discord</Link></li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/twitter">Twitter</Link></li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/github">GitHub</Link></li>
-              <li className="hover:text-purple-400 transition-colors cursor-pointer"><Link href="/community/youtube">YouTube</Link></li>
+              <li className="hover:text-purple-400 transition-colors">
+                <a
+                  href="https://discord.gg/mimesisai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Discord
+                </a>
+              </li>
+              <li className="hover:text-purple-400 transition-colors">
+                <a
+                  href="https://twitter.com/mimesisai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Twitter className="w-4 h-4" />
+                  Twitter
+                </a>
+              </li>
+              <li className="hover:text-purple-400 transition-colors">
+                <a
+                  href="https://github.com/mimesisai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Github className="w-4 h-4" />
+                  GitHub
+                </a>
+              </li>
+              <li className="hover:text-purple-400 transition-colors">
+                <a
+                  href="https://youtube.com/mimesisai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <Youtube className="w-4 h-4" />
+                  YouTube
+                </a>
+              </li>
             </ul>
           </div>
         </div>

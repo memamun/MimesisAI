@@ -4,25 +4,35 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Menu, X } from 'lucide-react';
+import { Brain, Menu, X, Newspaper, Users } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 const NAVIGATION = [
-  { 
-    name: 'Home', 
+  {
+    name: 'Home',
     href: '/',
     icon: <Brain className="w-4 h-4" />
   },
-  { 
-    name: 'Create', 
-    href: '/#generate', 
+  {
+    name: 'Create',
+    href: '/#generate',
     scroll: true,
     icon: <Brain className="w-4 h-4" />
   },
-  { 
-    name: 'Gallery', 
+  {
+    name: 'Gallery',
     href: '/gallery',
     icon: <Brain className="w-4 h-4" />
+  },
+  {
+    name: 'Blog',
+    href: '/blog',
+    icon: <Newspaper className="w-4 h-4" />
+  },
+  {
+    name: 'Community',
+    href: '/community',
+    icon: <Users className="w-4 h-4" />
   }
 ];
 
@@ -52,11 +62,11 @@ export function Header() {
 
   const handleNavigation = useCallback((href: string, scroll?: boolean) => {
     console.log('handleNavigation called:', { href, scroll, pathname });
-    
+
     if (scroll) {
       console.log('Scroll navigation');
       const elementId = href.split('#')[1];
-      
+
       // If we're not on the home page, first navigate to home
       if (pathname !== '/') {
         console.log('Not on home page, navigating to /');
@@ -73,7 +83,7 @@ export function Header() {
       console.log('Direct navigation to:', href);
       router.push(href);
     }
-    
+
     setIsMenuOpen(false);
   }, [pathname, router, scrollToElement]);
 
@@ -107,9 +117,8 @@ export function Header() {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className={`inline-flex items-center gap-1.5 ${
-                  pathname === item.href ? 'text-white' : 'text-gray-300 hover:text-white'
-                }`}>
+                <span className={`inline-flex items-center gap-1.5 ${pathname === item.href ? 'text-white' : 'text-gray-300 hover:text-white'
+                  }`}>
                   {item.icon}
                   {item.name}
                 </span>
@@ -118,7 +127,7 @@ export function Header() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 text-gray-300 hover:text-white"
           >
@@ -139,11 +148,10 @@ export function Header() {
                 <button
                   key={item.href}
                   onClick={() => handleNavigation(item.href, item.scroll)}
-                  className={`flex items-center gap-2 px-6 py-4 text-base w-full text-left ${
-                    pathname === item.href
+                  className={`flex items-center gap-2 px-6 py-4 text-base w-full text-left ${pathname === item.href
                       ? 'text-white bg-gradient-to-r from-purple-500/20 to-blue-500/20'
                       : 'text-gray-300 hover:bg-gray-800/50'
-                  }`}
+                    }`}
                 >
                   {React.cloneElement(item.icon, { size: 20 })}
                   {item.name}
